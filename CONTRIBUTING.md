@@ -60,7 +60,7 @@ If an advisor says a WinAPI function it unsafe, use of that function is _not_ re
 Constants
 ---------
 **Naming:** UPPERCASE  
-Use `static const`, unless a set of numbers are to be declared that are related. In that case, favor `enum` over `static const`.
+Use `static const` for single unrelated values, otherwise use `enum`. If the values of the entities in the `enum` doesn't matter, use `enum class`.
 
 Local variables
 ---------------
@@ -72,7 +72,8 @@ Use meaningful names, do _not_ name the variable something like `my_awesome_var`
 
 Only one variable may be declared per line.
 
-Always use WinAPI type names when they exist, otherwise use the standard types where applicable, last use built-in types, unless a built-in type exist that replaces the standard type.
+Always use WinAPI type names when they exist, otherwise use the standard types where applicable, last use built-in types, unless a built-in type exist that replaces the standard type.  
+`auto` may only be used to express complex types in limited contexts such as iterators in loops, otherwise use the actual type.  
 Exception: Do _not_ include `<cstdint>` etc to get typenames like `uint32_t`, use appropriate counterparts from the allowed ones instead.
 
 Pointer binds to type unless there is a WinAPI typename for the pointer variant of the type, so use `LPWCHAR` instead of `WCHAR*`, and `int* p` instead of `int *p`.  
