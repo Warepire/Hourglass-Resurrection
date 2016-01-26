@@ -404,7 +404,7 @@ void OpenRWRecentFile(int memwRFileNumber)
 		return;
 	}
 	const char DELIM = '\t';
-	AddressWatcher Temp;
+	AddressWatcher Temp = {};
 	char mode;
 	fgets(Str_Tmp_RW,1024,WatchFile);
 	sscanf(Str_Tmp_RW,"%c%*s",&mode);
@@ -418,7 +418,7 @@ void OpenRWRecentFile(int memwRFileNumber)
 	int WatchAdd;
 	fgets(Str_Tmp_RW,1024,WatchFile);
 	sscanf(Str_Tmp_RW,"%d%*s",&WatchAdd);
-	WatchAdd+=WatchCount;
+	WatchAdd += WatchCount;
 	for (int i = WatchCount; i < WatchAdd; i++)
 	{
 		while(i < 0)
@@ -586,7 +586,7 @@ bool Load_Watches(bool clear, const char* filename)
 	}
 	strcpy(currentWatch,filename);
 	RWAddRecentFile(currentWatch);
-	AddressWatcher Temp;
+	AddressWatcher Temp = {};
 	char mode;
 	fgets(Str_Tmp_RW,1024,WatchFile);
 	sscanf(Str_Tmp_RW,"%c%*s",&mode);
@@ -600,7 +600,7 @@ bool Load_Watches(bool clear, const char* filename)
 	int WatchAdd;
 	fgets(Str_Tmp_RW,1024,WatchFile);
 	sscanf(Str_Tmp_RW,"%d%*s",&WatchAdd);
-	WatchAdd+=WatchCount;
+	WatchAdd += WatchCount;
 	for (int i = WatchCount; i < WatchAdd; i++)
 	{
 		while(i < 0)
@@ -818,7 +818,7 @@ LRESULT CALLBACK EditWatchProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 				{
 					if(s && t)
 					{
-						AddressWatcher Temp;
+						AddressWatcher Temp = {};
 						Temp.Size = s;
 						Temp.Type = t;
 						Temp.WrongEndian = false; //replace this when I get little endian working properly
