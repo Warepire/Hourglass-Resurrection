@@ -2141,6 +2141,7 @@ public:
 	~EmulatedDirectSoundSink()
 	{
 		debuglog(LCF_DSOUND, __FUNCTION__ "(0x%X) called.\n", this);
+		free(sinkWaveFormat);
 	}
 
 	// IUnknown methods

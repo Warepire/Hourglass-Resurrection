@@ -646,7 +646,7 @@ void MakeWindowWindowed(HWND hwnd, DWORD width, DWORD height)
 {
 //	if(hwndSizeLocked.find(hwnd) == hwndSizeLocked.end())
 //		return;
-	RECT rect = {0,0,width,height};
+	RECT rect = {0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 	SetWindowLong(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 	//SetWindowPos(hwnd, 0, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, /*SWP_NOMOVE | */SWP_SHOWWINDOW);
@@ -1602,7 +1602,7 @@ DWORD WINAPI PostDllMain(LPVOID lpParam)
 	g_hklOverride = loadLayoutRv;
 	//if(!loadLayoutRv) // because LoadKeyboardLayout sometimes lies about succeeding and returns the default layout, let's always go into the fallback branch to ensure consistency
 	{
-		sscanf(keyboardLayoutName, "%08X", &g_hklOverride);
+		sscanf(keyboardLayoutName, "%08X", reinterpret_cast<int*>(&g_hklOverride));
 		if(!((DWORD)g_hklOverride & 0xFFFF0000))
 			(DWORD&)g_hklOverride |= ((DWORD)g_hklOverride << 16);
 	}

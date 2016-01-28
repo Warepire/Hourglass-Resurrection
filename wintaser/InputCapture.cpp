@@ -443,7 +443,7 @@ void InputCapture::GetKeyboardState(unsigned char* keys){
 		rval = lpDIDKeyboard->GetDeviceState(256, keys);
 		if((rval == DIERR_INPUTLOST) || (rval == DIERR_NOTACQUIRED))
 			// We couldn't get the state of the keyboard. Let's just say nothing was pressed.
-			memset(keys, 0, sizeof(keys));
+			memset(keys, 0, 256);
 	}
 }
 
@@ -626,7 +626,7 @@ void InputCapture::ProcessInputs(CurrentInput* currentI, HWND hWnd){
 			continue;
 
 		// Now we build the SingleInput, and check if it's mapped to something.
-		SingleInput siPressed = {SINGLE_INPUT_DI_KEYBOARD, k, ""};
+		SingleInput siPressed = { SINGLE_INPUT_DI_KEYBOARD, static_cast<SHORT>(k), "" };
 
 		/* Input mapping */
 		std::map<SingleInput,SingleInput>::iterator iterI = inputMapping.find(siPressed);
@@ -658,7 +658,7 @@ void InputCapture::ProcessInputs(CurrentInput* currentI, HWND hWnd){
 			continue;
 
 		// We build the SingleInput with modifiers this time, and check if it's mapped to something.
-		SingleInput siPressedMod = {SINGLE_INPUT_DI_KEYBOARD, (modifier << 8) | k, ""};
+		SingleInput siPressedMod = { SINGLE_INPUT_DI_KEYBOARD, static_cast<SHORT>((modifier << 8) | k), "" };
 
 		std::map<SingleInput,WORD>::iterator iterE = eventMapping.find(siPressedMod);
 		if (iterE != eventMapping.end()){ // There is something.
@@ -683,7 +683,7 @@ void InputCapture::ProcessInputs(CurrentInput* currentI, HWND hWnd){
 			continue;
 
 		// Now we build the SingleInput, and check if it's mapped to something.
-		SingleInput siPressed = {SINGLE_INPUT_DI_MOUSE, i, ""};
+		SingleInput siPressed = { SINGLE_INPUT_DI_MOUSE, static_cast<SHORT>(i), "" };
 
 		//TODO: Duplicate code !!!
 
@@ -1015,7 +1015,7 @@ LRESULT CALLBACK InputCapture::ConfigureInput(HWND hDlg, UINT uMsg, WPARAM wPara
 				{
 					int buf[1]; // Necessary, function crashes if you send a pointer to a simple varialbe.
 
-					SingleInput si;
+					SingleInput si; // FIXME: Why is this unused?
 
 					// Check if the selection happened in HotKeys
 					if(SendDlgItemMessage(hDlg, IDC_HOTKEYBOX, LB_GETSELITEMS, 1, (LPARAM)buf))
