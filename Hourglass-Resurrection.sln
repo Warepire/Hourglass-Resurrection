@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wintasee", "wintasee\wintas
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wintaser", "wintaser\wintaser2015.vcxproj", "{DFDB93E5-7F86-432A-9986-B079B8463FDB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wintasee", "poc\poc.vcxproj", "{A8129608-5A5D-4D1A-807A-24FBCFB1BA4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{DFDB93E5-7F86-432A-9986-B079B8463FDB}.Debug|Win32.Build.0 = Debug|Win32
 		{DFDB93E5-7F86-432A-9986-B079B8463FDB}.Release|Win32.ActiveCfg = Release|Win32
 		{DFDB93E5-7F86-432A-9986-B079B8463FDB}.Release|Win32.Build.0 = Release|Win32
+		{A8129608-5A5D-4D1A-807A-24FBCFB1BA4A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A8129608-5A5D-4D1A-807A-24FBCFB1BA4A}.Debug|Win32.Build.0 = Debug|Win32
+		{A8129608-5A5D-4D1A-807A-24FBCFB1BA4A}.Release|Win32.ActiveCfg = Release|Win32
+		{A8129608-5A5D-4D1A-807A-24FBCFB1BA4A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
