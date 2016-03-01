@@ -26,7 +26,6 @@
 #include "../shared/version.h"
 #include "Resource.h"
 #include "trace/ExtendedTrace.h"
-#include "InjectDLL.h"
 #include "CustomDLGs.h"
 #include "Movie.h"
 //#include "crc32.h"
@@ -3471,7 +3470,7 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 		NULL, // process attributes (e.g. security descriptor)
 		NULL, // thread attributes (e.g. security descriptor)
 		FALSE, // inherit handles
-		CREATE_SUSPENDED | DEBUG_PROCESS, // creation flags
+		/*CREATE_SUSPENDED |*/ DEBUG_PROCESS, // creation flags
 		///*INHERIT_PARENT_AFFINITY*/0x00010000 | CREATE_SUSPENDED | DEBUG_ONLY_THIS_PROCESS, // creation flags
 		//0,//CREATE_SUSPENDED ,//| DEBUG_ONLY_THIS_PROCESS, // creation flags
 		NULL, // environment
@@ -3633,19 +3632,6 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 	}
 
 	//debugprintf("INITIAL THREAD: 0x%X\n", processInfo.hThread);
-
-	debugprintf("attempting injection...\n");
-
-	char* dllpath = injectedDllPath;
-	strcpy(dllpath, thisprocessPath);
-	strcat(dllpath, "\\wintasee.dll");
-
-	if(!onlyHookChildProcesses)
-	{
-		InjectDll(processInfo.hProcess, processInfo.dwProcessId, processInfo.hThread, processInfo.dwThreadId, dllpath, runDllLast!=0);
-
-		debugprintf("done injection. starting game thread\n");
-	}
 
 	bool askedToRestartAboutBadThreadId = false;
 	//bool hasMainThread = false;
@@ -4467,7 +4453,7 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					char filename [MAX_PATH+1];
 
 					// hFile is NULL sometimes...
-					if(/*(movie.version >= 0 && movie.version < 40) || */!GetFileNameFromProcessHandle(de.u.CreateProcessInfo.hProcess, filename))
+					if(!GetFileNameFromProcessHandle(de.u.CreateProcessInfo.hProcess, filename))
 						GetFileNameFromFileHandle(de.u.CreateProcessInfo.hFile, filename);
 
 //					debugprintf("CREATE_PROCESS_DEBUG_EVENT: 0x%X\n", de.u.CreateProcessInfo.lpBaseOfImage);
@@ -4479,22 +4465,30 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					hGameThreads[de.dwThreadId].hProcess = de.u.CreateProcessInfo.hProcess;
 					gameThreadIdList.push_back(de.dwThreadId);
 
-					entrypoint = (int)de.u.CreateProcessInfo.lpStartAddress;
-					if(entrypoint/* && movie.version >= 70*/)
+
+#define INJECT_SIZE (16 * 1024)
+					LPVOID mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, INJECT_SIZE, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+					ASSERT(mem);
+					BYTE injectee[INJECT_SIZE];
+					memset(&injectee, 0, INJECT_SIZE);
+					HANDLE dll = CreateFileW(L"POC.dll", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+					ASSERT(dll != INVALID_HANDLE_VALUE);
+					DWORD read = 0;
+					BOOL rv = ReadFile(dll, &injectee, INJECT_SIZE, &read, nullptr);
+					ASSERT(rv && read > 0);
+					SIZE_T written = 0;
+					rv = WriteProcessMemory(de.u.CreateProcessInfo.hProcess, mem, &injectee, read, &written);
+					ASSERT(rv);
+					CloseHandle(dll);
+
+					entrypoint = (DWORD)de.u.CreateProcessInfo.lpStartAddress;
+					if(entrypoint)
 					{
-						AddBreakpoint(entrypoint, de.dwThreadId, de.u.CreateProcessInfo.hProcess);
+						//AddBreakpoint(entrypoint, de.dwThreadId, de.u.CreateProcessInfo.hProcess);
 						debugprintf("entrypoint = 0x%X\n", entrypoint);
 					}
 
-//					if(threadMode == 3)
-//					{
-//						debugprintf("MAIN THREAD: id=0x%X, handle=0x%X\n", de.dwThreadId, de.u.CreateProcessInfo.hThread);
-//						if(!s_lastThreadSwitchedTo)
-//							s_lastThreadSwitchedTo = de.dwThreadId;
-////						SuspendThread(de.u.CreateProcessInfo.hThread);
-//					}
-
-					bool nullFile = !de.u.CreateProcessInfo.hFile/* && !(movie.version >= 0 && movie.version < 40)*/;
+					bool nullFile = !de.u.CreateProcessInfo.hFile;
 					if(nullFile)
 						de.u.CreateProcessInfo.hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -4524,9 +4518,9 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 						PrintPrivileges(hGameProcess);
 						EXTENDEDTRACEINITIALIZEEX( NULL, hGameProcess );
 						LOADSYMBOLS2(hGameProcess, filename, de.u.CreateProcessInfo.hFile, de.u.CreateProcessInfo.lpBaseOfImage);
-						debugprintf("attempting injection...\n");
-						InjectDll(processInfo.hProcess, processInfo.dwProcessId, processInfo.hThread, processInfo.dwThreadId, dllpath, runDllLast!=0);
-						debugprintf("done injection. continuing...\n");
+						//debugprintf("attempting injection...\n");
+						//InjectDll(processInfo.hProcess, processInfo.dwProcessId, processInfo.hThread, processInfo.dwThreadId, dllpath, runDllLast!=0);
+						//debugprintf("done injection. continuing...\n");
 					}
 
 					allProcessInfos.push_back(processInfo);

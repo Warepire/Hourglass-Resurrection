@@ -5,11 +5,4 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include "global.h"
-
-BOOL APIENTRY DllMain(HMODULE hModule, 
-                      DWORD  fdwReason, 
-                      LPVOID lpReserved)
-{
-    return TRUE;
-}
+#include "tramps/alltramps.h"

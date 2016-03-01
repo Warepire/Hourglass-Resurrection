@@ -2,7 +2,7 @@
     Hourglass is licensed under GPL v2. Full notice is in COPYING.txt. */
 
 #include <windows.h>
-#include "global.h"
+#include "logging.h"
 #include "intercept.h"
 #include "../shared/asm.h"
 
@@ -72,7 +72,7 @@ BOOL InterceptGlobalFunction(FARPROC dwAddressToIntercept, FARPROC dwReplaced, F
 		}
 	}*/
 
-	debuglog(LCF_HOOK, "want to hook 0x%X to call 0x%X, and want trampoline 0x%X to call 0x%X\n", pTargetHead, pHook, pTramp, pTargetTail);
+	//debuglog(LCF_HOOK, "want to hook 0x%X to call 0x%X, and want trampoline 0x%X to call 0x%X\n", pTargetHead, pHook, pTramp, pTargetTail);
 
 	if(*pTramp == JMP_REL32)
 	{
@@ -130,6 +130,9 @@ BOOL HookVTable(void* iface, int entry, FARPROC replace, FARPROC& oldfuncPointer
 	return TRUE;
 }
 
+#include <string>
+#include <map>
+#include <vector>
 struct InterceptAPIArgs
 {
     LPCSTR funcName;
@@ -162,11 +165,11 @@ BOOL InterceptAPI(const char* c_szDllName, const char* c_szApiName,
 {
 	if (ordinal)
 	{
-		debuglog(LCF_MODULE | LCF_HOOK, "InterceptAPI(%s.(LPCSTR)%p) %s\n", c_szDllName, c_szApiName, "started...");
+		//debuglog(LCF_MODULE | LCF_HOOK, "InterceptAPI(%s.(LPCSTR)%p) %s\n", c_szDllName, c_szApiName, "started...");
 	}
 	else
 	{
-		debuglog(LCF_MODULE | LCF_HOOK, "InterceptAPI(%s.%s) %s\n", c_szDllName, c_szApiName, "started...");
+		//debuglog(LCF_MODULE | LCF_HOOK, "InterceptAPI(%s.%s) %s\n", c_szDllName, c_szApiName, "started...");
 	}
 
 	HMODULE hModule = GetModuleHandle(c_szDllName);
@@ -314,7 +317,7 @@ void RetryInterceptAPIs(const char* c_szDllName)
 
 void UnInterceptUnloadingAPIs(const char* c_szDllName)
 {
-	debuglog(LCF_MODULE, "Unloaded delayed load DLL: %s\n", c_szDllName);
+	//debuglog(LCF_MODULE, "Unloaded delayed load DLL: %s\n", c_szDllName);
 	//std::map<std::string, std::vector<InterceptAPIArgs>, lessicmp >::iterator found;
 	//found = delayHookedInterceptAPICalls.find(c_szDllName);
 	//if(found == delayHookedInterceptAPICalls.end())

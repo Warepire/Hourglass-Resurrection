@@ -151,7 +151,6 @@
     <ClCompile Include="hooks\windowhooks.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="global.h" />
     <ClInclude Include="..\shared\asm.h" />
     <ClInclude Include="tramps\alltramps.h" />
     <ClInclude Include="tramps\windowtramps.h" />

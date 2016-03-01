@@ -1,7 +1,7 @@
 /*  Copyright (C) 2011 nitsuja and contributors
     Hourglass is licensed under GPL v2. Full notice is in COPYING.txt. */
 
-#include "../global.h"
+#include "../tramps/alltramps.h"
 
 HOOKFUNC HWND WINAPI MyCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName,
 	LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight,

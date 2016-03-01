@@ -86,7 +86,7 @@
     <ClCompile Include="MainMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\poc\intercept.cpp">
+    <ClCompile Include="intercept.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -175,7 +175,7 @@
     <ClInclude Include="MainMenu.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\poc\intercept.h">
+    <ClInclude Include="intercept.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
