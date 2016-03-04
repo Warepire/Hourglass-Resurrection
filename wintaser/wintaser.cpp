@@ -68,6 +68,7 @@ using namespace Config;
 #include "DirLocks.h"
 #include "ExeFileOperations.h"
 
+#include "MapParser.h"
 
 #pragma warning(disable:4995)
 
@@ -4465,8 +4466,9 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					hGameThreads[de.dwThreadId].hProcess = de.u.CreateProcessInfo.hProcess;
 					gameThreadIdList.push_back(de.dwThreadId);
 
-
 #define INJECT_SIZE (16 * 1024)
+					DLLMapReader mr;
+					mr.ReadMapFile(L"POC.map");
 					LPVOID mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, INJECT_SIZE, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 					ASSERT(mem);
 					BYTE injectee[INJECT_SIZE];

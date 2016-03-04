@@ -178,6 +178,9 @@
     <ClInclude Include="intercept.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="MapParser.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="wintaser.ico">
