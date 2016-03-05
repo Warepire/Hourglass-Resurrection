@@ -191,7 +191,7 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
 bool HookModule(std::string module, LPVOID base_address, HANDLE debuggee, LPVOID injectee)
 {
     bool rv = false;
-    auto it = hook_table.find(module);
+    auto it = hook_table.find(module.substr(module.rfind("\\") + 1));
     if (it == hook_table.end())
     {
         debugprintf("HookModule: Did not find module %s in list\n", module.c_str());
@@ -203,14 +203,16 @@ bool HookModule(std::string module, LPVOID base_address, HANDLE debuggee, LPVOID
     bool should_free = false;
     if (mod == nullptr)
     {
+        debugprintf("HookModule: Module %s is not loaded\n", module.c_str());
         mod = LoadLibraryA(module.c_str());
         if (mod == nullptr)
         {
+            debugprintf("HookModule: Module %s failed to load\n", module.c_str());
             return rv;
         }
         should_free = true;
     }
-
+    debugprintf("HookModule: Module %s loaded\n", module.c_str());
     for (auto& h : functions_to_hook)
     {
         rv = false;
@@ -218,18 +220,19 @@ bool HookModule(std::string module, LPVOID base_address, HANDLE debuggee, LPVOID
         auto my_it = mr.function_map.find(std::string("My") + h.funcName);
         if (tramp_it == mr.function_map.end() || my_it == mr.function_map.end())
         {
-            debugprintf("Failed to find My/Tramp!\n");
+            debugprintf("HookModule: Failed to find My/Tramp!\n");
             break;
         }
         FARPROC function = GetProcAddress(mod, h.funcName);
         if (function == nullptr)
         {
-            debugprintf("Failed to get ProcAddress!\n");
+            debugprintf("HookModule: Failed to get ProcAddress!\n");
             break;
         }
         FARPROC target = reinterpret_cast<FARPROC>((reinterpret_cast<LPBYTE>(function) -
                                                     reinterpret_cast<LPBYTE>(mod)) +
                                                     reinterpret_cast<LPBYTE>(base_address));
+        debugprintf("HookModule: Generated target addr 0x%X from 0x%X\n", target, function);
 
         BOOL success = InterceptGlobalFunction(debuggee,
                                                target,
@@ -238,8 +241,10 @@ bool HookModule(std::string module, LPVOID base_address, HANDLE debuggee, LPVOID
                                                h.trampolineOnly);
         if (success == FALSE)
         {
+            debugprintf("HookModule: Failed to hook %s\n", h.funcName);
             break;
         }
+        debugprintf("HookModule: Hooked %s\n", h.funcName);
         rv = true;
     }
     if (should_free)
