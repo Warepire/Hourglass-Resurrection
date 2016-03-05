@@ -69,6 +69,7 @@ using namespace Config;
 #include "ExeFileOperations.h"
 
 #include "MapParser.h"
+#include "intercept.h"
 
 #pragma warning(disable:4995)
 
@@ -3414,7 +3415,8 @@ void OnMovieStart()
 }
 
 
-
+DLLMapReader mr;
+LPVOID dll_in_mem = nullptr;
 // debuggerthreadproc
 static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam) 
 {
@@ -4346,7 +4348,8 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 						debugprintf("LOADED DLL: %s\n", filename);
 						HANDLE hProcess = GetProcessHandle(processInfo,de);
 						RegisterModuleInfo(de.u.LoadDll.lpBaseOfDll, hProcess, filename);
-						AddAndSendDllInfo(filename, true, hProcess);
+						//AddAndSendDllInfo(filename, true, hProcess);
+                        HookModule(filename, de.u.LoadDll.lpBaseOfDll, hProcess, dll_in_mem);
 
 #if 0 // DLL LOAD CALLSTACK PRINTING
 
@@ -4467,10 +4470,10 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					gameThreadIdList.push_back(de.dwThreadId);
 
 #define INJECT_SIZE (16 * 1024)
-					DLLMapReader mr;
+					//DLLMapReader mr;
 					mr.ReadMapFile(L"POC.map");
-					LPVOID mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, INJECT_SIZE, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-					ASSERT(mem);
+					/*LPVOID */dll_in_mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, INJECT_SIZE, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+					ASSERT(dll_in_mem);
 					BYTE injectee[INJECT_SIZE];
 					memset(&injectee, 0, INJECT_SIZE);
 					HANDLE dll = CreateFileW(L"POC.dll", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -4479,7 +4482,7 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					BOOL rv = ReadFile(dll, &injectee, INJECT_SIZE, &read, nullptr);
 					ASSERT(rv && read > 0);
 					SIZE_T written = 0;
-					rv = WriteProcessMemory(de.u.CreateProcessInfo.hProcess, mem, &injectee, read, &written);
+					rv = WriteProcessMemory(de.u.CreateProcessInfo.hProcess, dll_in_mem, &injectee, read, &written);
 					ASSERT(rv);
 					CloseHandle(dll);
 

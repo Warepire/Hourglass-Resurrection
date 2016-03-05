@@ -58,6 +58,6 @@ public:
         CloseHandle(map);
         return rv;
     }
-private:
+
     std::map<std::string, DWORD> function_map;
 };
