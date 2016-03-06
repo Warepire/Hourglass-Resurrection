@@ -31,27 +31,16 @@ public:
                 res = ReadFile(map, const_cast<char*>(file.c_str()), size.QuadPart, &read, nullptr);
                 if (res && read == size.QuadPart)
                 {
-                    std::string preferred_load_address = " Preferred load address is ";
-                    std::size_t offset = file.find(preferred_load_address) + preferred_load_address.size();
-                    if (offset != std::string::npos)
-                    {
-                        unsigned long base_address = strtoul(file.substr(offset, 8).c_str(), nullptr, 16);
-                        if (base_address > 0 && base_address != ULONG_MAX)
-                        {
-                            std::regex function_name("[ ][?]([A-Za-z0-9]+?)[@]");
-                            std::regex function_locations("[ ]([0-9A-Fa-f]+?)[ ][A-Za-z0-9 ]+.obj");
+                    std::regex entry("[ ]([0-9]+?)[:]([0-9a-fA-F]+)[ ]+?[?]([A-Za-z0-9]+?)[@].+[ ]([0-9a-zA-Z]+?).obj");
 
-                            std::sregex_iterator end;
-                            std::sregex_iterator function_matches(file.begin(), file.end(), function_name);
-                            std::sregex_iterator location_matches(file.begin(), file.end(), function_locations);
-                            for (; function_matches != end && location_matches != end;
-                                   function_matches++, location_matches++)
-                            {
-                                function_map[function_matches->format("$1")] = strtoul(location_matches->format("$1").c_str(), nullptr, 16) - base_address;
-                            }
-                            rv = true;
-                        }
+                    std::sregex_iterator end;
+                    for (std::sregex_iterator entry_matches(file.begin(), file.end(), entry);
+                         entry_matches != end; entry_matches++)
+                    {
+                        debugprintf("%s\n", entry_matches->format("$1 : $2 as $3 in $4").c_str());
+                        function_map[entry_matches->format("$3")] = strtoul(entry_matches->format("$2").c_str(), nullptr, 16) + (0x400 * strtoul(entry_matches->format("$1").c_str(), nullptr, 10));
                     }
+                    rv = true;
                 }
             }
         }
