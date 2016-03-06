@@ -131,7 +131,7 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
 	{
         memset(buffer, 0, sizeof(buffer));
         buffer[0] = JMP_REL32;
-        *reinterpret_cast<int*>(&buffer[1]) = pHook - (pTargetHead + 4);
+        *reinterpret_cast<int*>(&buffer[1]) = pHook - ((BYTE*)dwAddressToIntercept + JMP_REL32_OPCODE_LEN);
         // overwrite the first JMP_REL32_OPCODE_LEN bytes of the target function with a jump to our hook
         VirtualProtectEx(debuggee, dwAddressToIntercept, JMP_REL32_OPCODE_LEN, PAGE_EXECUTE_READWRITE, &dwOldProtect); 
         WriteProcessMemory(debuggee, dwAddressToIntercept, buffer, JMP_REL32_OPCODE_LEN, &written);
