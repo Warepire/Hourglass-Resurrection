@@ -11,7 +11,9 @@ HOOKFUNC HWND WINAPI MyCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName,
 		lpWindowName, dwStyle, X, Y, nWidth, nHeight,
 		hWndParent, hMenu, hInstance, lpParam);
 
-	MessageBoxA(hwnd, "Hello from the hook!", "Messagebox!", MB_OK | MB_ICONINFORMATION);
+    static const char* hello = "Hello from the hook!";
+    static const char* title = "Messagebox!";
+	MessageBoxA(hwnd, hello, title, MB_OK | MB_ICONINFORMATION);
 
 	return hwnd;
 }
@@ -23,7 +25,9 @@ HOOKFUNC HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
 		lpWindowName, dwStyle, X, Y, nWidth, nHeight,
 		hWndParent, hMenu, hInstance, lpParam);
 
-	MessageBoxW(hwnd, L"Hello from the hook!", L"Messagebox!", MB_OK | MB_ICONINFORMATION);
+    static const wchar_t* hello = L"Hello from the hook!";
+    static const wchar_t* title = L"Messagebox!";
+	MessageBoxW(hwnd, hello, title, MB_OK | MB_ICONINFORMATION);
 
 	return hwnd;
 }
