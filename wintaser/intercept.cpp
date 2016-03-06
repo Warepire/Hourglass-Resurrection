@@ -47,8 +47,6 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
     };
 
     BYTE buffer[32];
-    BYTE buf2[32];
-    memset(buf2, 0, sizeof(buf2));
 	BYTE* pTargetHead = (BYTE*)dwAddressToIntercept;
 	//BYTE* pTargetTail = pTargetHead;
 	BYTE* pTramp = (BYTE*)dwTrampoline;
@@ -113,30 +111,31 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
 	//	return rvOnSkip;
 	//}
 
-	// we'll have to overwrite 5 bytes, which means we have to backup at least 5 bytes (up to next instruction boundary)
+	// we'll have to overwrite JMP_REL32_OPCODE_LEN bytes,
+    // which means we have to backup at least JMP_REL32_OPCODE_LEN bytes (up to next instruction boundary)
 	int offset = 0;
-	while(offset < 5)
+	while(offset < JMP_REL32_OPCODE_LEN)
 		offset += instructionLength(buffer + offset);
 
     memset(buffer + offset, 0, sizeof(buffer) - offset);
     buffer[offset] = JMP_REL32;
-    *reinterpret_cast<int*>(&buffer[offset + 1]) = pTargetHead - (pTramp + 4);
+    *reinterpret_cast<int*>(&buffer[offset + 1]) = pTargetHead - (pTramp + JMP_REL32_OPCODE_LEN + offset);
 
-	// in the trampoline, write the first 5+ bytes of the target function followed by a jump to our hook
-    VirtualProtectEx(debuggee, dwTrampoline, 5 + offset, PAGE_EXECUTE_READWRITE, &dwOldProtect); 
-    ReadProcessMemory(debuggee, dwTrampoline, buf2, 5 + offset, &read);
-    WriteProcessMemory(debuggee, dwTrampoline, buffer, 5 + offset, &written);
-    VirtualProtectEx(debuggee, dwTrampoline, 5 + offset, PAGE_EXECUTE, &dwOldProtect); 
+	// in the trampoline, write the first JMP_REL32_OPCODE_LEN+ bytes of the target function,
+    // followed by a jump to the original code
+    VirtualProtectEx(debuggee, dwTrampoline, JMP_REL32_OPCODE_LEN + offset, PAGE_EXECUTE_READWRITE, &dwOldProtect); 
+    WriteProcessMemory(debuggee, dwTrampoline, buffer, JMP_REL32_OPCODE_LEN + offset, &written);
+    VirtualProtectEx(debuggee, dwTrampoline, JMP_REL32_OPCODE_LEN + offset, PAGE_EXECUTE, &dwOldProtect);
 
 	if(!trampolineOnly)
 	{
         memset(buffer, 0, sizeof(buffer));
         buffer[0] = JMP_REL32;
         *reinterpret_cast<int*>(&buffer[1]) = pHook - (pTargetHead + 4);
-        // overwrite the first 5 bytes of the target function with a jump to our hook
-        VirtualProtectEx(debuggee, dwAddressToIntercept, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect); 
-        WriteProcessMemory(debuggee, dwAddressToIntercept, buffer, 5, &written);
-        VirtualProtectEx(debuggee, dwAddressToIntercept, 5, PAGE_EXECUTE, &dwOldProtect);
+        // overwrite the first JMP_REL32_OPCODE_LEN bytes of the target function with a jump to our hook
+        VirtualProtectEx(debuggee, dwAddressToIntercept, JMP_REL32_OPCODE_LEN, PAGE_EXECUTE_READWRITE, &dwOldProtect); 
+        WriteProcessMemory(debuggee, dwAddressToIntercept, buffer, JMP_REL32_OPCODE_LEN, &written);
+        VirtualProtectEx(debuggee, dwAddressToIntercept, JMP_REL32_OPCODE_LEN, PAGE_EXECUTE, &dwOldProtect);
 	}
 
 	// flush the instruction cache to make sure the modified code is executed
