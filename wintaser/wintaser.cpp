@@ -4469,22 +4469,30 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					hGameThreads[de.dwThreadId].hProcess = de.u.CreateProcessInfo.hProcess;
 					gameThreadIdList.push_back(de.dwThreadId);
 
-#define INJECT_SIZE (16 * 1024)
-					//DLLMapReader mr;
 					mr.ReadMapFile(L"POC.map");
-					/*LPVOID */dll_in_mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, INJECT_SIZE, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-					ASSERT(dll_in_mem);
-					BYTE injectee[INJECT_SIZE];
-					memset(&injectee, 0, INJECT_SIZE);
-					HANDLE dll = CreateFileW(L"POC.dll", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-					ASSERT(dll != INVALID_HANDLE_VALUE);
-					DWORD read = 0;
-					BOOL rv = ReadFile(dll, &injectee, INJECT_SIZE, &read, nullptr);
-					ASSERT(rv && read > 0);
+                    HMODULE dll = LoadLibrary("POC.dll");
+                    ASSERT(dll != nullptr);
+                    MEMORY_BASIC_INFORMATION mbi;
+                    VirtualQuery(dll, &mbi, sizeof(mbi));
+                    void* base_address = mbi.AllocationBase;
+                    void* region_address = mbi.AllocationBase;
+                    VirtualQuery(base_address, &mbi, sizeof(mbi));
+                    SIZE_T region_size = 0;
+                    while (mbi.State == MEM_COMMIT && base_address == mbi.AllocationBase)
+                    {
+                        region_size += mbi.RegionSize;
+                        region_address = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
+                        VirtualQuery(region_address, &mbi, sizeof(mbi));
+                    }
+                    dll_in_mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, region_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+                    ASSERT(dll_in_mem);
+                    DWORD old;
+                    BOOL rv = VirtualProtect(dll, region_size, PAGE_EXECUTE_READWRITE, &old);
+                    ASSERT(rv);
 					SIZE_T written = 0;
-					rv = WriteProcessMemory(de.u.CreateProcessInfo.hProcess, dll_in_mem, &injectee, read, &written);
+					rv = WriteProcessMemory(de.u.CreateProcessInfo.hProcess, dll_in_mem, &dll, region_size, &written);
 					ASSERT(rv);
-					CloseHandle(dll);
+					FreeLibrary(dll);
 
 					entrypoint = (DWORD)de.u.CreateProcessInfo.lpStartAddress;
 					if(entrypoint)

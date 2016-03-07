@@ -38,7 +38,7 @@ public:
                          entry_matches != end; entry_matches++)
                     {
                         debugprintf("%s\n", entry_matches->format("$1 : $2 as $3 in $4").c_str());
-                        function_map[entry_matches->format("$3")] = strtoul(entry_matches->format("$2").c_str(), nullptr, 16) + (0x400 * strtoul(entry_matches->format("$1").c_str(), nullptr, 10));
+                        function_map[entry_matches->format("$3")] = strtoul(entry_matches->format("$2").c_str(), nullptr, 16) + (0x1000 * strtoul(entry_matches->format("$1").c_str(), nullptr, 10));
                     }
                     rv = true;
                 }

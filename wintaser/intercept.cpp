@@ -66,7 +66,12 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
         VirtualProtectEx(debuggee, pTargetHead, sizeof(buffer), PAGE_EXECUTE_READWRITE, &dwOldProtect);
         ReadProcessMemory(debuggee, pTargetHead, buffer, sizeof(buffer), &read);
         VirtualProtectEx(debuggee, pTargetHead, sizeof(buffer), PAGE_EXECUTE, &dwOldProtect);
-        //debugprintf("Buffer contains: %X %X %X %X %X %X %X %X\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
+        debugprintf("Buffer contains:");
+        for (unsigned int i = 0; i < sizeof(buffer); i++)
+        {
+            debugprintf(" %X", buffer[i]);
+        }
+        debugprintf("\n");
         if (buffer[0] != JMP_REL32)
         {
             break;
@@ -113,17 +118,17 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
 	int offset = 0;
 	while(offset < JMP_REL32_OPCODE_LEN)
 		offset += instructionLength(buffer + offset);
-    //debugprintf("Bytes to copy: %d\n", offset);
+    debugprintf("Bytes to copy: %d\n", offset);
 
     memset(buffer + offset, 0, sizeof(buffer) - offset);
     buffer[offset] = JMP_REL32;
     *reinterpret_cast<int*>(&buffer[offset + 1]) = pTargetHead - (pTramp + /*JMP_REL32_OPCODE_LEN + */offset);
-    //debugprintf("Trampoline:");
-    //for (unsigned int i = 0; i < offset + JMP_REL32_OPCODE_LEN; i++)
-    //{
-    //    debugprintf(" %X", buffer[i]);
-    //}
-    //debugprintf("\n");
+    debugprintf("Trampoline:");
+    for (unsigned int i = 0; i < offset + JMP_REL32_OPCODE_LEN; i++)
+    {
+        debugprintf(" %X", buffer[i]);
+    }
+    debugprintf("\n");
 
     // in the trampoline, write the first JMP_REL32_OPCODE_LEN+ bytes of the target function,
     // followed by a jump to the original code
@@ -134,12 +139,12 @@ BOOL InterceptGlobalFunction(HANDLE debuggee, FARPROC dwAddressToIntercept, FARP
         memset(buffer, 0, sizeof(buffer));
         buffer[0] = JMP_REL32;
         *reinterpret_cast<int*>(&buffer[1]) = pHook - ((BYTE*)dwAddressToIntercept + JMP_REL32_OPCODE_LEN);
-        //debugprintf("Hook:");
-        //for (unsigned int i = 0; i < JMP_REL32_OPCODE_LEN; i++)
-        //{
-        //    debugprintf(" %X", buffer[i]);
-        //}
-        //debugprintf("\n");
+        debugprintf("Hook:");
+        for (unsigned int i = 0; i < JMP_REL32_OPCODE_LEN; i++)
+        {
+            debugprintf(" %X", buffer[i]);
+        }
+        debugprintf("\n");
         // overwrite the first JMP_REL32_OPCODE_LEN bytes of the target function with a jump to our hook
         WriteProcessMemory(debuggee, dwAddressToIntercept, buffer, JMP_REL32_OPCODE_LEN, &written);
 	}
