@@ -68,6 +68,7 @@ using namespace Config;
 #include "DirLocks.h"
 #include "ExeFileOperations.h"
 
+#include "DLLLoader.h"
 #include "MapParser.h"
 #include "intercept.h"
 
@@ -3416,6 +3417,7 @@ void OnMovieStart()
 
 
 DLLMapReader mr;
+DLLLoader dl;
 LPVOID dll_in_mem = nullptr;
 // debuggerthreadproc
 static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam) 
@@ -4469,30 +4471,10 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					hGameThreads[de.dwThreadId].hProcess = de.u.CreateProcessInfo.hProcess;
 					gameThreadIdList.push_back(de.dwThreadId);
 
+                    dl.ReadDLL(L"POC.dll");
+                    dl.ParseDLL();
 					mr.ReadMapFile(L"POC.map");
-                    HMODULE dll = LoadLibrary("POC.dll");
-                    ASSERT(dll != nullptr);
-                    MEMORY_BASIC_INFORMATION mbi;
-                    VirtualQuery(dll, &mbi, sizeof(mbi));
-                    void* base_address = mbi.AllocationBase;
-                    void* region_address = mbi.AllocationBase;
-                    VirtualQuery(base_address, &mbi, sizeof(mbi));
-                    SIZE_T region_size = 0;
-                    while (mbi.State == MEM_COMMIT && base_address == mbi.AllocationBase)
-                    {
-                        region_size += mbi.RegionSize;
-                        region_address = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
-                        VirtualQuery(region_address, &mbi, sizeof(mbi));
-                    }
-                    dll_in_mem = VirtualAllocEx(de.u.CreateProcessInfo.hProcess, nullptr, region_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-                    ASSERT(dll_in_mem);
-                    DWORD old;
-                    BOOL rv = VirtualProtect(dll, region_size, PAGE_EXECUTE_READWRITE, &old);
-                    ASSERT(rv);
-					SIZE_T written = 0;
-					rv = WriteProcessMemory(de.u.CreateProcessInfo.hProcess, dll_in_mem, &dll, region_size, &written);
-					ASSERT(rv);
-					FreeLibrary(dll);
+                    dl.LoadDLLRemotely(de.u.CreateProcessInfo.hProcess, &dll_in_mem);
 
 					entrypoint = (DWORD)de.u.CreateProcessInfo.lpStartAddress;
 					if(entrypoint)

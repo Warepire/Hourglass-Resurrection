@@ -160,6 +160,7 @@
     <ClInclude Include="CPUinfo.h" />
     <ClInclude Include="CustomDLGs.h" />
     <ClInclude Include="DirLocks.h" />
+    <ClInclude Include="DLLLoader.h" />
     <ClInclude Include="ExeFileOperations.h" />
     <ClInclude Include="GUI\DlgBase.h" />
     <ClInclude Include="GUI\Menu.h" />
