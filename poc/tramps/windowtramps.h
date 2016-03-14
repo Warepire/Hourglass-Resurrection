@@ -16,3 +16,6 @@ TRAMPFUNC HWND WINAPI CreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
 TRAMPFUNC int WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) TRAMPOLINE_DEF
 #define MessageBoxW TrampMessageBoxW
 TRAMPFUNC int WINAPI MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType) TRAMPOLINE_DEF
+
+#define OutputDebugStringA TrampOutputDebugStringA
+TRAMPFUNC void WINAPI OutputDebugStringA(LPCSTR lpOutputString) TRAMPOLINE_DEF_VOID

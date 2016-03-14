@@ -11,10 +11,8 @@ HOOKFUNC HWND WINAPI MyCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName,
 		lpWindowName, dwStyle, X, Y, nWidth, nHeight,
 		hWndParent, hMenu, hInstance, lpParam);
 
-    static const char* hello = "Hello from the hook!";
-    static const char* title = "Messagebox!";
-	MessageBoxA(hwnd, hello, title, MB_OK | MB_ICONINFORMATION);
-
+    static const char* hello = __FUNCTION__ ": Hello from the hook!\n";
+    OutputDebugStringA(hello);
 	return hwnd;
 }
 HOOKFUNC HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
@@ -25,10 +23,8 @@ HOOKFUNC HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
 		lpWindowName, dwStyle, X, Y, nWidth, nHeight,
 		hWndParent, hMenu, hInstance, lpParam);
 
-    static const wchar_t* hello = L"Hello from the hook!";
-    static const wchar_t* title = L"Messagebox!";
-	MessageBoxW(hwnd, hello, title, MB_OK | MB_ICONINFORMATION);
-
+    static const char* hello = __FUNCTION__ ": Hello from the hook!\n";
+    OutputDebugStringA(hello);
 	return hwnd;
 }
 
@@ -39,4 +35,9 @@ HOOKFUNC int WINAPI MyMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UI
 HOOKFUNC int WINAPI MyMessageBoxW(HWND hWnd, LPWSTR lpText, LPWSTR lpCaption, UINT uType)
 {
 	return MessageBoxW(hWnd, lpText, lpCaption, uType);
+}
+
+HOOKFUNC void MyOutputDebugStringA(LPCSTR lpOutputString)
+{
+    return OutputDebugStringA(lpOutputString);
 }

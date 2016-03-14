@@ -30,6 +30,9 @@ std::map<std::string, std::vector<InterceptAPIArgs>> hook_table =
                       { "MessageBoxA",     false },
                       { "MessageBoxW",     false },
                     }
+    },
+    { "kernel32.dll", { { "OutputDebugStringA", false },
+                    }
     }
 };
 
