@@ -4471,10 +4471,10 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 					hGameThreads[de.dwThreadId].hProcess = de.u.CreateProcessInfo.hProcess;
 					gameThreadIdList.push_back(de.dwThreadId);
 
-                    dl.ReadDLL(L"POC.dll");
-                    dl.ParseDLL();
-					mr.ReadMapFile(L"POC.map");
-                    dl.LoadDLLRemotely(de.u.CreateProcessInfo.hProcess, &dll_in_mem);
+                    ASSERT(dl.ReadDLL(L"POC.dll"));
+                    ASSERT(dl.ParseDLL());
+					ASSERT(mr.ReadMapFile(L"POC.map"));
+                    ASSERT(dl.LoadDLLRemotely(de.u.CreateProcessInfo.hProcess, &dll_in_mem));
 
 					entrypoint = (DWORD)de.u.CreateProcessInfo.lpStartAddress;
 					if(entrypoint)

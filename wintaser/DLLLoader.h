@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "logging.h"
+#include "trace\extendedtrace.h"
 
 class DLLLoader
 {
@@ -81,6 +82,7 @@ public:
                             }
                             j += this_reloc->SizeOfBlock;
                         }
+                        rv = true;
                     }
                 }
         }
@@ -98,6 +100,7 @@ public:
         {
             return false;
         }
+        debugprintf("Allocated 0x%X bytes of memory at 0x%X while preferred 0x%X.\n", pe_header->OptionalHeader.SizeOfImage, *dll, pe_header->OptionalHeader.ImageBase);
         // Write the headers.
         DWORD written;
         BOOL rv = WriteProcessMemory(process, *dll, buffer.data(), section_headers->PointerToRawData, &written);
@@ -110,7 +113,7 @@ public:
         for (WORD i = 0; i < pe_header->FileHeader.NumberOfSections; i++)
         {
             rv = WriteProcessMemory(process, address + section_headers[i].VirtualAddress, &buffer[section_headers[i].PointerToRawData], section_headers[i].SizeOfRawData, &written);
-            if (rv == TRUE && written == section_headers[i].SizeOfRawData)
+            if (rv == FALSE && written < section_headers[i].SizeOfRawData)
             {
                 return false;
             }
@@ -119,6 +122,7 @@ public:
         {
             DoRelocation(process, *dll);
         }
+        LOADSYMBOLS2(process, "POC.dll", nullptr, *dll);
         return true;
     }
 
@@ -143,7 +147,8 @@ private:
     bool DoRelocation(HANDLE process, void* dll)
     {
         // offset < 0 when loaded before preferred base, > 0 when loaded after.
-        INT offset = pe_header->OptionalHeader.ImageBase - reinterpret_cast<DWORD>(dll);
+        INT offset = reinterpret_cast<DWORD>(dll) - pe_header->OptionalHeader.ImageBase;
+        debugprintf("Offsetting base with %d bytes\n", offset);
         LPBYTE local_reloc_ptr = reinterpret_cast<LPBYTE>(relocations);
         DWORD out;
         DWORD reloc_buffer;
