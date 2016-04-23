@@ -32,6 +32,7 @@ public:
                 if (res && read == size.QuadPart)
                 {
                     std::regex entry("[ ]([0-9]+?)[:]([0-9a-fA-F]+)[ ]+?[?]([A-Za-z0-9]+?)[@].+[ ]([0-9a-zA-Z]+?).obj");
+                    std::regex ipc("[ ]([0-9]+?)[:]([0-9a-fA-F]+)[ ]+?[?](ipc_frame+?)[@]");
 
                     std::sregex_iterator end;
                     for (std::sregex_iterator entry_matches(file.begin(), file.end(), entry);
@@ -39,6 +40,12 @@ public:
                     {
                         debugprintf("%s\n", entry_matches->format("$1 : $2 as $3 in $4").c_str());
                         function_map[entry_matches->format("$3")] = strtoul(entry_matches->format("$2").c_str(), nullptr, 16) + (0x1000 * strtoul(entry_matches->format("$1").c_str(), nullptr, 10));
+                    }
+                    for (std::sregex_iterator entry_matches(file.begin(), file.end(), ipc);
+                         entry_matches != end; entry_matches++)
+                    {
+                        debugprintf("%s\n", entry_matches->format("$1 : $2 as $3").c_str());
+                        ipc_frame_loc[entry_matches->format("$3")] = strtoul(entry_matches->format("$2").c_str(), nullptr, 16) + (0x1000 * strtoul(entry_matches->format("$1").c_str(), nullptr, 10));
                     }
                     rv = true;
                 }
@@ -49,4 +56,5 @@ public:
     }
 
     std::map<std::string, DWORD> function_map;
+    std::map<std::string, DWORD> ipc_frame_loc;
 };

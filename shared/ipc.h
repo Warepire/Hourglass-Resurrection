@@ -116,3 +116,44 @@ struct TrustedRangeInfos
 #ifndef SUCCESSFUL_EXITCODE
 #define SUCCESSFUL_EXITCODE 4242
 #endif
+
+// ===============================================================================
+
+// PoC IPC
+namespace IPC
+{
+    /*
+     * This IPC Command enum contains all the command and reply IDs, they work similarly to the old
+     * scheme of IPC where the direction of the buffer is decided by the ID, even ID comes from the DLL
+     * and odd ID from the debugger. So the IDs also double as an IPC state.
+     */
+    enum IPCCommand : DWORD
+    {
+        /*
+         * Skip commands 0 and 1 to be able to tell the difference between a newly memset buffer and
+         * an actual command.
+         */
+        CMD_PRINT_MESSAGE = 0x00000002,
+        CMD_PRINT_MESSAGE_REPLY,
+    };
+
+    struct PrintMessage
+    {
+        /* Bad "strcpy" to prevent use of _memset */
+        PrintMessage(const char* string)
+        {
+            for (DWORD i = 0; i < sizeof(message) && string[i] != '\0'; i++)
+            {
+                message[i] = string[i];
+            }
+        }
+        char message[4096];
+    };
+
+    struct IPCFrame
+    {
+        IPCCommand command;
+        DWORD data_size;
+        LPVOID data_location;
+    };
+}

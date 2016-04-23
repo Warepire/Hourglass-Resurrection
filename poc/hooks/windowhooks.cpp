@@ -1,6 +1,8 @@
 /*  Copyright (C) 2011 nitsuja and contributors
     Hourglass is licensed under GPL v2. Full notice is in COPYING.txt. */
 
+#include "../ipc_poc.h"
+
 #include "../tramps/alltramps.h"
 
 HOOKFUNC HWND WINAPI MyCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName,
@@ -11,8 +13,8 @@ HOOKFUNC HWND WINAPI MyCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName,
 		lpWindowName, dwStyle, X, Y, nWidth, nHeight,
 		hWndParent, hMenu, hInstance, lpParam);
 
-    static const char* hello = __FUNCTION__ ": Hello from the hook!\n";
-    OutputDebugStringA(hello);
+    IPC::PrintMessage message = { __FUNCTION__ ": Hook says hi!\n" };
+    IPC::SendIPCMessage(IPC::CMD_PRINT_MESSAGE, sizeof(message), &message);
 	return hwnd;
 }
 HOOKFUNC HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
@@ -23,8 +25,8 @@ HOOKFUNC HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
 		lpWindowName, dwStyle, X, Y, nWidth, nHeight,
 		hWndParent, hMenu, hInstance, lpParam);
 
-    static const char* hello = __FUNCTION__ ": Hello from the hook!\n";
-    OutputDebugStringA(hello);
+    IPC::PrintMessage message = { __FUNCTION__ ": Hook says hi!\n" };
+    IPC::SendIPCMessage(IPC::CMD_PRINT_MESSAGE, sizeof(message), &message);
 	return hwnd;
 }
 
