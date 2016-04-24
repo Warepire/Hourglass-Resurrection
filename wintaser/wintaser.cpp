@@ -3996,24 +3996,31 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 				if(de.u.Exception.ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
 				{
 					DWORD address = (DWORD)de.u.Exception.ExceptionRecord.ExceptionAddress;
-					int index = GetBreakpointIndex(address, de.dwThreadId);
-					if(index != -1)
+					//int index = GetBreakpointIndex(address, de.dwThreadId);
+					//if(index != -1)
 					{
-						debugprintf("hit custom breakpoint at address = 0x%X\n", address);
-						if(address == entrypoint)
-						{
-							RemoveBreakpoint(address, de.dwThreadId, /*GetProcessHandle(processInfo,de)*/hGameProcess);
-							//debugprintf("pc was 0x%X\n", GetProgramCounter(processInfo.hThread));
-							// in this case we can use processInfo.hThread because we know we're dealing with the main thread
-							SetProgramCounter(processInfo.hThread, address);
-							// suspend main thread until PostDllMain finishes
-							if(!postDllMainDone)
-							{
-								debugprintf("suspending main thread until PostDllMain finishes...\n");
-								SuspendThread(processInfo.hThread);
-								mainThreadWaitingForPostDllMain = true;
-							}
-						}
+                        IPC::IPCFrame frame;
+                        DWORD bytes;
+                        BOOL rv = ReadProcessMemory(hGameProcess, static_cast<LPBYTE>(dll_in_mem) + mr.ipc_frame_loc["ipc_frame"], &frame, sizeof(frame), &bytes);
+                        if (rv && bytes == sizeof(frame))
+                        {
+                            switch (frame.command)
+                            {
+                                case IPC::IPCCommand::CMD_PRINT_MESSAGE:
+                                {
+                                    IPC::PrintMessage msg("");
+                                    rv = ReadProcessMemory(hGameProcess, frame.data_location, &msg, sizeof(msg), &bytes);
+                                    if (rv && bytes == sizeof(msg))
+                                    {
+                                        debugprintf(msg.message);
+                                    }
+                                    break;
+                                }
+                                default:
+                                    break;
+                            }
+                        }
+                        break;
 					}
 				}
 
