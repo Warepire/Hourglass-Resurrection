@@ -61,7 +61,7 @@ namespace MemoryManagerInternal
         {
             if (item->m_address < it->m_address)
             {
-                if (it->m_prev != nullptr && it->m_prev->m_address < item->m_address)
+                if (it->m_prev != nullptr && item->m_address < it->m_prev->m_address)
                 {
                     it = it->m_prev;
                 }
@@ -378,7 +378,7 @@ namespace MemoryManagerInternal
          */
         mod->m_blocks = mbd;
 
-        if (bytes + bytes_for_mod_and_mbd + size_of_mbd < allocation_granularity)
+        if (bytes + bytes_for_mod_and_mbd + size_of_mbd < file_size)
         {
             /*
              * This block can be used for more than one allocation.
