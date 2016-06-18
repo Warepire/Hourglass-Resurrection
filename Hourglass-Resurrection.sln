@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "injectee", "injectee\injectee.vcxproj", "{948D0C09-EE11-4241-9286-D88C5B84DA36}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client", "client\client.vcxproj", "{DFDB93E5-7F86-432A-9986-B079B8463FDB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{E2DA1C4D-F463-4F37-900B-26EFF84B99FF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map-parser", "tools\map-parser\map-parser.vcxproj", "{74988685-9D0C-461D-81ED-8229174570E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +25,15 @@ Global
 		{DFDB93E5-7F86-432A-9986-B079B8463FDB}.Debug|Win32.Build.0 = Debug|Win32
 		{DFDB93E5-7F86-432A-9986-B079B8463FDB}.Release|Win32.ActiveCfg = Release|Win32
 		{DFDB93E5-7F86-432A-9986-B079B8463FDB}.Release|Win32.Build.0 = Release|Win32
+		{74988685-9D0C-461D-81ED-8229174570E8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{74988685-9D0C-461D-81ED-8229174570E8}.Debug|Win32.Build.0 = Debug|Win32
+		{74988685-9D0C-461D-81ED-8229174570E8}.Release|Win32.ActiveCfg = Release|Win32
+		{74988685-9D0C-461D-81ED-8229174570E8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{74988685-9D0C-461D-81ED-8229174570E8} = {E2DA1C4D-F463-4F37-900B-26EFF84B99FF}
 	EndGlobalSection
 EndGlobal

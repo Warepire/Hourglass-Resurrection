@@ -7,9 +7,9 @@
 *.sdf
 *.opensdf
 *.suo
-*.hgr
-*.cfg
+*.map
 *.vcxproj.user
 *.VC.opendb
 *.VC.db
 ipch/
+build/
