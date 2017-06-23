@@ -9,6 +9,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <memory>
 #include <string>
 
 #include <atlbase.h>
@@ -16,6 +17,7 @@
 #include <../../DIA SDK/include/dia2.h>
 
 #include "DbgHelpPrivate.h"
+#include "DbgHelpTypes.h"
 
 class DbgHelpStackWalkCallbackPrivate
 {
@@ -25,6 +27,10 @@ public:
     std::wstring GetModuleName();
     std::wstring GetFunctionName();
     DWORD GetParameterCount();
+    DbgHelpArgType GetParameterType(DWORD num);
+    std::wstring GetParameterTypeName(DWORD num);
+    std::wstring GetParameterName(DWORD num);
+    std::shared_ptr<void> GetParameterValue(DWORD num);
     std::wstring GetFunctionParameters(); // TODO: Destroy
 
     DWORD GetUnsureStatus();
@@ -47,6 +53,8 @@ private:
      */
     struct ParamInfo
     {
+        DbgHelpArgType m_type;
+        std::wstring m_typename;
         std::wstring m_name;
         CComPtr<IDiaSymbol> m_arg_info;
         CComPtr<IDiaSymbol> m_type_info;

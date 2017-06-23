@@ -139,6 +139,26 @@ DWORD DbgHelpStackWalkCallbackPrivate::GetParameterCount()
     return m_param_info.size();
 }
 
+DbgHelpArgType DbgHelpStackWalkCallbackPrivate::GetParameterType(DWORD num)
+{
+    return DbgHelpArgType();
+}
+
+std::wstring DbgHelpStackWalkCallbackPrivate::GetParameterTypeName(DWORD num)
+{
+    return std::wstring();
+}
+
+std::wstring DbgHelpStackWalkCallbackPrivate::GetParameterName(DWORD num)
+{
+    return std::wstring();
+}
+
+std::shared_ptr<void> DbgHelpStackWalkCallbackPrivate::GetParameterValue(DWORD num)
+{
+    return std::shared_ptr<void>();
+}
+
 CComPtr<IDiaSymbol> DbgHelpStackWalkCallbackPrivate::GetFunctionSymbol()
 {
     CComPtr<IDiaSymbol> symbol;
@@ -159,9 +179,16 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
     if (m_mod_info->m_module_symbol_session == nullptr)
     {
         /*
-         * TODO: Look at callee asm to guess number of parameters
-         *       this always evaluates to 0 when no debug symbols are known...
+         * TODO: Look at callee asm to guess number of parameters. The get_lengthParams method 
+         *       always returns 0 when no debug symbols are known...
+         * Temp workaround: Assume 4 parameters (this is what the old implementation did).
+         * -- Warepire
          */
+        m_unsure++;
+        for (DWORD i = 0; i < 4; i++)
+        {
+            m_param_info.emplace_back(ParamInfo{ DbgHelpArgType::Int, L"int", { static_cast<WCHAR>(L'a' + i) }, nullptr, nullptr, 4, i * 4 });
+        }
     }
     else
     {
@@ -179,7 +206,7 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
          * This will be incremented for each found symbol, with it's size.
          */
         DWORD offset = 0;
-        while (enum_symbols->Next(1, &sym_info, &num_fetched) == S_OK)
+        for (DWORD count = 0; (enum_symbols->Next(1, &sym_info, &num_fetched) == S_OK); count++)
         {
             if (num_fetched != 1)
             {
@@ -201,17 +228,73 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
                 sym_info->Release();
                 continue;
             }
-            //DWORD tag;
-            //if (type_info->get_symTag(&tag) != S_OK)
-            //{
-            //    sym_info->Release();
-            //    continue;
-            //}
+            DWORD typetag;
+            if (type_info->get_symTag(&typetag) != S_OK)
+            {
+                sym_info->Release();
+                continue;
+            }
             ULONGLONG length = 0;
             if (type_info->get_length(&length) != S_OK)
             {
                 sym_info->Release();
                 continue;
+            }
+            DbgHelpArgType arg_type;
+            if (typetag == SymTagEnum || typetag == SymTagBaseType)
+            {
+                DWORD type;
+                if (type_info->get_baseType(&type) == S_OK)
+                {
+                    switch (type)
+                    {
+                    case btNoType:
+                        arg_type = DbgHelpArgType::Unknown;
+                        break;
+                    case btVoid:
+                        arg_type = DbgHelpArgType::Unknown;
+                        break;
+                    case btChar:
+                        arg_type = DbgHelpArgType::Char;
+                        break;
+                    case btWChar:
+                        arg_type = DbgHelpArgType::WideChar;
+                        break;
+                    case btInt:
+                        arg_type = (length == 4) ? DbgHelpArgType::Int : DbgHelpArgType::LongLong;
+                        break;
+                    case btUInt:
+                        arg_type = (length == 4) ? DbgHelpArgType::UnsignedInt
+                                                 : DbgHelpArgType::UnsignedLongLong;
+                        break;
+                    case btFloat:
+                        arg_type = (length == 4) ? DbgHelpArgType::Float
+                                                 : ((length == 8) ? DbgHelpArgType::Double
+                                                                  : DbgHelpArgType::LongDouble);
+                        break;
+                            btBCD = 9,
+                            btBool = 10,
+                            btLong = 13,
+                            btULong = 14,
+                            btCurrency = 25,
+                            btDate = 26,
+                            btVariant = 27,
+                            btComplex = 28,
+                            btBit = 29,
+                            btBSTR = 30,
+                            btHresult = 31,
+                            btChar16 = 32,  // char16_t
+                            btChar32 = 33,  // char32_t
+                    }
+                }
+            }
+            else if (typetag == SymTagUDT)
+            {
+                DWORD udt;
+                if (type_info->get_udtKind(&udt) == S_OK)
+                {
+
+                }
             }
 
             BSTR name;
@@ -224,12 +307,13 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
              * something else has probably gone really awry.
              * -- Warepire
              */
-            m_param_info.emplace_back(ParamInfo{ name != nullptr ? name : L"",
+            m_param_info.emplace_back(ParamInfo{ name != nullptr ? name :
+                                                     std::wstring({ static_cast<WCHAR>(L'a' + count) }),
                                                  sym_info, type_info,
                                                  static_cast<DWORD>(length), offset });
             offset += static_cast<DWORD>(length);
             // Temp debug stuff
-            //debugprintf(L"Found argument %s with type tag %u\n", name, tag);
+            //debugprintf(L"Found argument %s with type tag %u\n", name, typetag);
 
             if (name != nullptr)
             {

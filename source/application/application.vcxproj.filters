@@ -244,6 +244,9 @@
     <ClInclude Include="Utils\File.h">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="DbgHelp\DbgHelpTypes.h">
+      <Filter>Source Files\DbgHelp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wintaser.rc" />

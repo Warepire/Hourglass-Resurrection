@@ -183,6 +183,7 @@
     <ClInclude Include="DbgHelp\DbgHelpStackWalkCallback.h" />
     <ClInclude Include="DbgHelp\DbgHelpStackWalkCallbackPrivate.h" />
     <ClInclude Include="DbgHelp\DbgHelpStackWalkHelper.h" />
+    <ClInclude Include="DbgHelp\DbgHelpTypes.h" />
     <ClInclude Include="DirLocks.h" />
     <ClInclude Include="ExeFileOperations.h" />
     <ClInclude Include="GUI\DlgBase.h" />
