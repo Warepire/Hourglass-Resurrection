@@ -281,7 +281,7 @@ Utils::File::ExecutableFileHeaders::ImageRelocationTable Utils::File::Executable
             {
                 memcpy(&reloc, relocations + sizeof(this_reloc) + (r * sizeof(WORD)), sizeof(WORD));
                 /*
-                 * reloc entries that have the top 4 bites zero'd are just padding for alignment as
+                 * reloc entries that have the top 4 bits zero'd are just padding for alignment as
                  * each block must start on a 4-byte boundary.
                  */
                 if (reloc & 0xF000 == 0)

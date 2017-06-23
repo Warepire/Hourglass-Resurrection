@@ -4329,7 +4329,7 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 							debugprintf(L"%s", msg);
 #ifndef _DEBUG
 							if(!skipDialog)
-								CustomMessageBox(msg, "CRASH", MB_OK|MB_ICONERROR);
+								CustomMessageBox(msg, L"CRASH", MB_OK|MB_ICONERROR);
 #endif
 							recoveringStale = false;
 						}
