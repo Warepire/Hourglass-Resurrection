@@ -37,7 +37,7 @@ DbgHelpPrivate::DbgHelpPrivate(HANDLE process) :
     m_should_uninitialize(true)
 {
     HRESULT rv = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_SPEED_OVER_MEMORY);
-    if (rv != S_OK || rv != S_FALSE)
+    if (rv != S_OK && rv != S_FALSE)
     {
         m_should_uninitialize = false;
     }

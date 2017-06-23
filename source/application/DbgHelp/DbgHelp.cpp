@@ -47,10 +47,7 @@ DbgHelp::DbgHelp()
     //symbol_paths.append(";").append("SRV*%SYSTEMDRIVE%\\websymbols*http://msdl.microsoft.com/download/symbols");
 }
 
-DbgHelp::~DbgHelp()
-{
-    m_private_map.clear();
-}
+DbgHelp::~DbgHelp() = default;
 
 void DbgHelp::AddProcess(HANDLE process, DWORD process_id)
 {

@@ -272,19 +272,19 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
                                                  : ((length == 8) ? DbgHelpArgType::Double
                                                                   : DbgHelpArgType::LongDouble);
                         break;
-                            btBCD = 9,
-                            btBool = 10,
-                            btLong = 13,
-                            btULong = 14,
-                            btCurrency = 25,
-                            btDate = 26,
-                            btVariant = 27,
-                            btComplex = 28,
-                            btBit = 29,
-                            btBSTR = 30,
-                            btHresult = 31,
-                            btChar16 = 32,  // char16_t
-                            btChar32 = 33,  // char32_t
+                            //btBCD = 9,
+                            //btBool = 10,
+                            //btLong = 13,
+                            //btULong = 14,
+                            //btCurrency = 25,
+                            //btDate = 26,
+                            //btVariant = 27,
+                            //btComplex = 28,
+                            //btBit = 29,
+                            //btBSTR = 30,
+                            //btHresult = 31,
+                            //btChar16 = 32,  // char16_t
+                            //btChar32 = 33,  // char32_t
                     }
                 }
             }
@@ -307,7 +307,8 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
              * something else has probably gone really awry.
              * -- Warepire
              */
-            m_param_info.emplace_back(ParamInfo{ name != nullptr ? name :
+            m_param_info.emplace_back(ParamInfo{ arg_type, L"",
+                                                 name != nullptr ? name :
                                                      std::wstring({ static_cast<WCHAR>(L'a' + count) }),
                                                  sym_info, type_info,
                                                  static_cast<DWORD>(length), offset });
