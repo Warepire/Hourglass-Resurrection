@@ -52,8 +52,9 @@ std::wstring DbgHelpStackWalkCallbackPrivate::GetFunctionName()
     if (m_mod_info->m_module_symbol_session == nullptr)
     {
         auto it = m_mod_info->m_module_exports_table.lower_bound(GetProgramCounter());
-        if (it != m_mod_info->m_module_exports_table.begin() && (--it) != m_mod_info->m_module_exports_table.begin())
+        if (it != m_mod_info->m_module_exports_table.begin())
         {
+            it--;
             function_name = it->second;
         }
         return function_name;
@@ -240,7 +241,7 @@ void DbgHelpStackWalkCallbackPrivate::EnumerateParameters()
                 sym_info->Release();
                 continue;
             }
-            DbgHelpArgType arg_type;
+            DbgHelpArgType arg_type = DbgHelpArgType::Unknown;
             if (typetag == SymTagEnum || typetag == SymTagBaseType)
             {
                 DWORD type;

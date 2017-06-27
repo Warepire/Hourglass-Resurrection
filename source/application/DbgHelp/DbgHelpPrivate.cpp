@@ -165,10 +165,11 @@ const DbgHelpPrivate::ModuleData* DbgHelpPrivate::GetModuleData(ULONGLONG virtua
      * DataSource tied to 'virtual_address' by checking the position before.
      */
     auto it = m_loaded_modules.lower_bound(virtual_address);
-    if (it == m_loaded_modules.begin() || (--it) == m_loaded_modules.begin())
+    if (it == m_loaded_modules.begin())
     {
         return nullptr;
     }
+    it--;
     LONGLONG rva = virtual_address - it->first;
     if (rva >= 0 && it->second.m_module_size >= rva)
     {
