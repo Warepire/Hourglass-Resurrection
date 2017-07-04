@@ -144,7 +144,7 @@ Utils::File::ExecutableFileHeaders::ExecutableFileHeaders(const std::wstring& fi
 
     m_buffer.resize(file_size / sizeof(DWORD32));
 
-    if (!file.ReadFile(GetBufferPointerAt(0), m_buffer.size(), &read) &&
+    if (!file.ReadFile(GetBufferPointerAt(0), m_buffer.size() * sizeof(DWORD32), &read) ||
         (read != file_size))
     {
         return;
@@ -312,7 +312,7 @@ DWORD Utils::File::ExecutableFileHeaders::RvaToOffset(DWORD rva) const
     auto sections = GetSectionHeader();
     for (DWORD i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
-        if (sections[i].VirtualAddress + sections[i].SizeOfRawData >= rva)
+        if (sections[i].VirtualAddress <= rva && sections[i].VirtualAddress + sections[i].SizeOfRawData > rva)
         {
             return (sections[i].PointerToRawData + rva) - sections[i].VirtualAddress;
         }
