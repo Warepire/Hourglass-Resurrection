@@ -142,9 +142,9 @@ Utils::File::ExecutableFileHeaders::ExecutableFileHeaders(const std::wstring& fi
         return;
     }
 
-    m_buffer.resize(file_size / sizeof(DWORD32));
+    m_buffer.resize((file_size + sizeof(DWORD32) - 1) / sizeof(DWORD32));
 
-    if (!file.ReadFile(GetBufferPointerAt(0), m_buffer.size() * sizeof(DWORD32), &read) ||
+    if (!file.ReadFile(GetBufferPointerAt(0), file_size, &read) ||
         (read != file_size))
     {
         return;
