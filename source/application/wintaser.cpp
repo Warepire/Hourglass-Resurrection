@@ -3871,7 +3871,9 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
                                                         oss.setf(std::ios_base::showbase);
                                                         oss.setf(std::ios_base::hex, std::ios_base::basefield);
 
-                                                        // Add the module and function name.
+                                                        /*
+                                                         * Add the module and function name.
+                                                         */
                                                         oss << data.GetModuleName() << L" : " << data.GetFunctionName() << L'(';
 
                                                         size_t arg_number = 1;
@@ -3882,10 +3884,14 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
                                                                 oss << L", ";
                                                             }
 
-                                                            // Add the parameter type and name.
+                                                            /*
+                                                             * Add the parameter type and name.
+                                                             */
                                                             oss << parameter.m_type.GetName() << L' ' << parameter.m_name << L" = ";
 
-                                                            // Add the parameter value.
+                                                            /*
+                                                             * Add the parameter value.
+                                                             */
                                                             if (parameter.m_value.has_value())
                                                             {
 #pragma message(__FILE__ ": TODO: change to constexpr-if lambdas when they are supported (VS2017 Preview 3)")
@@ -3901,7 +3907,9 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
                                                                         m_oss << static_cast<int>(value) << L" \'" << value << L'\'';
                                                                     }
 
-                                                                    // Pointers ignore showbase.
+                                                                    /*
+                                                                     * Pointers ignore showbase.
+                                                                     */
                                                                     void operator()(void* value)
                                                                     {
                                                                         m_oss << L"0x" << value;
@@ -3922,7 +3930,9 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
 
                                                         oss << L')';
 
-                                                        // Add the unsure status display.
+                                                        /*
+                                                         * Add the unsure status display.
+                                                         */
                                                         if (data.GetUnsureStatus() > 0)
                                                         {
                                                             oss << L'?';
