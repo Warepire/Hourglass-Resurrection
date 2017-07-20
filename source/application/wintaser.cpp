@@ -1,4 +1,4 @@
-/*  Copyright (C) 2011 nitsuja and contributors
+﻿/*  Copyright (C) 2011 nitsuja and contributors
     Hourglass is licensed under GPL v2. Full notice is in COPYING.txt. */
 
 // main EXE cpp
@@ -48,6 +48,7 @@ using namespace Config;
 #include <string>
 #include <algorithm>
 #include <type_traits>
+#include <sstream>
 #include <aclapi.h>
 #include <assert.h>
 
@@ -3866,7 +3867,99 @@ static DWORD WINAPI DebuggerThreadFunc(LPVOID lpParam)
                                             {
                                                 auto cb = [](IDbgHelpStackWalkCallback& data)
                                                     { 
-                                                        debugprintf(L"STACK FRAME: %s : %s /%d\n", data.GetModuleName().c_str(), data.GetFunctionName().c_str(), data.GetParameterCount());
+                                                        std::wostringstream oss(L"STACK FRAME: ");
+                                                        oss.setf(std::ios_base::showbase);
+                                                        oss.setf(std::ios_base::hex, std::ios_base::basefield);
+
+                                                        /*
+                                                         * Add the module and function name.
+                                                         */
+                                                        oss << data.GetModuleName() << L" : " << data.GetFunctionName() << L'(';
+
+                                                        size_t arg_number = 1;
+                                                        for (const auto& parameter : data.GetParameters())
+                                                        {
+                                                            if (arg_number > 1)
+                                                            {
+                                                                oss << L", ";
+                                                            }
+
+                                                            /*
+                                                             * Add the parameter type and name.
+                                                             */
+                                                            oss << parameter.m_type.GetName() << L' ' << parameter.m_name << L" = ";
+
+                                                            /*
+                                                             * Add the parameter value.
+                                                             */
+                                                            if (parameter.m_value.has_value())
+                                                            {
+#pragma message(__FILE__ ": TODO: change to constexpr-if lambdas when they are supported (VS2017 Preview 3)")
+                                                                class visitor
+                                                                {
+                                                                    std::wostringstream& m_oss;
+
+                                                                public:
+                                                                    visitor(std::wostringstream& oss) : m_oss(oss) {}
+
+                                                                    /*
+                                                                     * Print chars.
+                                                                     */
+                                                                    void operator()(char value)
+                                                                    {
+                                                                        m_oss << static_cast<int>(value) << L" \'" << value << L'\'';
+                                                                    }
+
+                                                                    void operator()(wchar_t value)
+                                                                    {
+                                                                        m_oss << static_cast<int>(value) << L" \'" << value << L'\'';
+                                                                    }
+
+                                                                    void operator()(char16_t value)
+                                                                    {
+                                                                        m_oss << static_cast<int>(value) << L" \'" << value << L'\'';
+                                                                    }
+
+                                                                    void operator()(char32_t value)
+                                                                    {
+                                                                        m_oss << static_cast<int>(value) << L" \'" << value << L'\'';
+                                                                    }
+
+                                                                    /*
+                                                                     * Pointers ignore showbase.
+                                                                     */
+                                                                    void operator()(void* value)
+                                                                    {
+                                                                        m_oss << L"0x" << value;
+                                                                    }
+
+                                                                    template<typename T>
+                                                                    void operator()(T value)
+                                                                    {
+                                                                        m_oss << value;
+                                                                    }
+                                                                };
+
+                                                                std::visit(visitor(oss), parameter.m_value.value());
+                                                            }
+
+                                                            ++arg_number;
+                                                        }
+
+                                                        oss << L')';
+
+                                                        /*
+                                                         * Add the unsure status display.
+                                                         */
+                                                        if (data.GetUnsureStatus() > 0)
+                                                        {
+                                                            oss << L'?';
+                                                        }
+
+                                                        oss << L'\n';
+
+                                                        debugprintf(L"%s", oss.str().c_str());
+
                                                         return IDbgHelpStackWalkCallback::Action::CONTINUE;
                                                     };
                                                 DbgHelp::StackWalk(de.dwProcessId, found->second.handle, cb);
