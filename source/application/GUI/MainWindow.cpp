@@ -7,6 +7,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <functional>
+
+#include "../wintaser.h"
+
 #include "application/GUI/Core/DlgBase.h"
 #include "MainWindow.h"
 
@@ -48,6 +52,7 @@ MainWindow::MainWindow() :
 #endif
         , 0, 0, 301, 178, DlgType::NORMAL)
 {
+    // TODO: Add something like this to every window, for installing menus:
     //LTEXT           "", IDC_TOPLEFTCONTROL, 0, 0, 1, 1
     AddRadioButton(L"Read-Only", IDC_RADIO_READONLY, 235, 44, 50, 10, false, false);
     AddRadioButton(L"Read+Write", IDC_RADIO_READWRITE, 235, 56, 54, 10, false, true);
@@ -82,6 +87,8 @@ MainWindow::MainWindow() :
     AddCheckbox(L"Fast-Forward", IDC_FASTFORWARD, 236, 82, 57, 10, false);
     AddStaticText(L"Command Line Arguments", IDC_STATIC, 143, 94, 97, 8);
     AddEditControl(IDC_EDIT_COMMANDLINE, 140, 104, 97, 12, false, false);
+
+    RegisterCloseEventCallback(std::bind(&MainWindow::OnCloseEvent, this));
 }
 
 MainWindow::~MainWindow()
@@ -93,4 +100,12 @@ void MainWindow::Spawn(int show_window)
     SpawnDialogBox(nullptr, DlgMode::INDIRECT);
     ShowDialogBox(show_window);
     UpdateWindow();
+}
+
+bool MainWindow::OnCloseEvent()
+{
+    SendMessage(WM_COMMAND, IDC_BUTTON_STOP, 0);
+    HourglassCore::PrepareForExit();
+    DestroyDialog();
+    return true;
 }

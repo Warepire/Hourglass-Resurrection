@@ -18,4 +18,8 @@ public:
     ~MainWindow();
 
     void Spawn(int show_window);
+
+private:
+
+    bool OnCloseEvent();
 };
