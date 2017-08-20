@@ -301,6 +301,9 @@
     <ClInclude Include="GUI\MainWindow.h">
       <Filter>Source Files\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="wintaser.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wintaser.rc" />

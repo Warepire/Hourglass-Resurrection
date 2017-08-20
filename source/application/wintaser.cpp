@@ -80,6 +80,8 @@ using namespace Config;
 
 #include "shared/CompilerChecks.h"
 
+#include "wintaser.h"
+
 ABORT_ON_NEW_COMPILER("/permissive- was disabled due to a bug in VS2017.3, re-enable it now.");
 
 #pragma warning(disable:4995)
@@ -88,14 +90,6 @@ ABORT_ON_NEW_COMPILER("/permissive- was disabled due to a bug in VS2017.3, re-en
 #define CONTEXT_ALL (CONTEXT_FULL | CONTEXT_FLOATING_POINT | CONTEXT_DEBUG_REGISTERS | CONTEXT_EXTENDED_REGISTERS)
 #endif
 
-HINSTANCE hInst;
-WCHAR title[MAX_LOADSTRING];
-WCHAR window_class[MAX_LOADSTRING];
-
-BOOL InitInstance(HINSTANCE, int);
-BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
-//BOOL CALLBACK	ViewportDlgProc(HWND, UINT, WPARAM, LPARAM);
-static void EnableDisablePlayRecordButtons(HWND hDlg);
 
 // Globalized the TAS-flags struct, should reduce memory usage some.
 /*
@@ -2440,10 +2434,10 @@ void CheckDialogChanges(int frameCount)
 		SendMessage(GetDlgItem(hWnd, IDC_EDIT_MAXFRAME), EM_SETREADONLY, !paused && started, 0);
 #else
 		// FIXME: editing curframe/maxframe is NYI
-		SendMessage(GetDlgItem(hWnd, IDC_EDIT_CURFRAME), EM_SETREADONLY, TRUE, 0);
-		SendMessage(GetDlgItem(hWnd, IDC_EDIT_MAXFRAME), EM_SETREADONLY, TRUE, 0);
+		SendMessageW(GetDlgItem(hWnd, IDC_EDIT_CURFRAME), EM_SETREADONLY, TRUE, 0);
+		SendMessageW(GetDlgItem(hWnd, IDC_EDIT_MAXFRAME), EM_SETREADONLY, TRUE, 0);
 #endif
-		SendMessage(GetDlgItem(hWnd, IDC_EDIT_FPS), EM_SETREADONLY, !paused && started, 0);
+		SendMessageW(GetDlgItem(hWnd, IDC_EDIT_FPS), EM_SETREADONLY, !paused && started, 0);
 		CheckDlgButton(hWnd, IDC_PAUSED, paused);
 	}
 	if(!displayed_checkdialog_inited || static_cast<int>(displayed_fastforward) != localTASflags.fastForward)
@@ -4646,28 +4640,29 @@ rewait:
 	}
 }
 
-
-void PrepareForExit()
+namespace HourglassCore
 {
-	//unatexit(PrepareForExit);
-	static bool already = false;
-	if(already)
-		return;
-	already = true;
+    void PrepareForExit()
+    {
+        //unatexit(PrepareForExit);
+        static bool already = false;
+        if (already)
+            return;
+        already = true;
 
-	if(localTASflags.aviMode) // hack, sometimes ~AviFrameQueue has trouble terminating the thread, no sense waiting for it if there's no avi and we're exiting anyway
-	{
-		CloseAVI();
-	}
-	if(unsavedMovieData)
-	{
-		SaveMovie(movie_filename);
-	}
-	Save_Config();
-	TerminateDebuggerThread(6500);
-	WaitForOtherThreadToTerminate(hAfterDebugThreadExitThread, 5000);
+        if (localTASflags.aviMode) // hack, sometimes ~AviFrameQueue has trouble terminating the thread, no sense waiting for it if there's no avi and we're exiting anyway
+        {
+            CloseAVI();
+        }
+        if (unsavedMovieData)
+        {
+            SaveMovie(movie_filename);
+        }
+        Save_Config();
+        TerminateDebuggerThread(6500);
+        WaitForOtherThreadToTerminate(hAfterDebugThreadExitThread, 5000);
+    }
 }
-
 
 HMENU MainMenu = NULL;
 
@@ -4804,14 +4799,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     DbgHelp::Init();
 
-    hInst = hInstance;
     MainWindow main_window;
     main_window.Spawn(nCmdShow);
 
 	//hAccelTable = LoadAccelerators(hInstance, (LPCTSTR)IDC_WINTASER);
 
 	//Init_Input(hInst, hWnd);
-	inputC.InitInputs(hInst, hWnd);
+	//inputC.InitInputs(hInst, hWnd);
 
 	Build_Main_Menu(MainMenu, hWnd);
 
@@ -4958,7 +4952,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 			OnAfterDebugThreadExit();
 	}
 
-	PrepareForExit();
+	HourglassCore::PrepareForExit();
 
 	return (int) msg.wParam;
 }
@@ -5122,9 +5116,6 @@ void BringGameWindowToForeground()
 
 	unsaved = true;
 }*/
-
-void SplitToValidPath(const char* initialPath, const char* defaultDir, char* filename, char* directory);
-BOOL SetWindowTextAndScrollRight(HWND hEdit, LPCSTR lpString);
 
 /*LRESULT CALLBACK SpliceProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -5294,16 +5285,6 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     BOOL rv = TRUE;  
     switch(message)  
     {  
-        case WM_INITDIALOG:
-        {
-            WCHAR title[256];
-			swprintf(title, ARRAYSIZE(title), L"Hourglass-Resurrection v%d.%d", VERSION, MINORVERSION);
-#ifdef _DEBUG
-			wcscat(title, L" (debug build)");
-#endif
-			SetWindowTextW(hDlg, title);
-		}
-        break;
 
 		case WM_SHOWWINDOW:
  			{
@@ -5369,19 +5350,6 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			//EnableDisablePlayRecordButtons(hDlg); // disabled because it breaks being able to set fps or system clock on existing movie
 			break;
 
-        case WM_CLOSE:
-			SendMessageW(hDlg, WM_COMMAND, ID_FILES_STOP, 0);
-			PrepareForExit();
-			PostQuitMessage(0);
-            break;
-
-		case WM_DESTROY:
-			hWnd = NULL;
-			PrepareForExit();
-			PostQuitMessage(0);
-            break;
-
-
 		//case WM_LBUTTONUP: // auto-switch to game window on left click on unimportant place
 		//	if(started && !finished)
 		//	{
@@ -5437,7 +5405,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 					if(!RamSearchHWnd)
 					{
 						LRESULT CALLBACK RamSearchProc(HWND, UINT, WPARAM, LPARAM);
-						RamSearchHWnd = CreateDialog(hInst, MAKEINTRESOURCE(IDD_RAMSEARCH), hWnd, (DLGPROC) RamSearchProc);
+						//RamSearchHWnd = CreateDialog(hInst, MAKEINTRESOURCE(IDD_RAMSEARCH), hWnd, (DLGPROC) RamSearchProc);
 					}
 					else
 						SetForegroundWindow(RamSearchHWnd);
@@ -5447,7 +5415,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 					if(!RamWatchHWnd)
 					{
 						LRESULT CALLBACK RamWatchProc(HWND, UINT, WPARAM, LPARAM);
-						RamWatchHWnd = CreateDialog(hInst, MAKEINTRESOURCE(IDD_RAMWATCH), hWnd, (DLGPROC) RamWatchProc);
+						//RamWatchHWnd = CreateDialog(hInst, MAKEINTRESOURCE(IDD_RAMWATCH), hWnd, (DLGPROC) RamWatchProc);
 					}
 					else
 						SetForegroundWindow(RamWatchHWnd);
@@ -5860,7 +5828,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 						static unsigned int dialogSizeX = 0;
 						static unsigned int dialogSizeY = 0;
 
-						HotkeyHWnd = CreateDialog(hInst, MAKEINTRESOURCE(IDD_CONTROLCONF), hWnd, (DLGPROC) &InputCapture::ConfigureInput);
+						//HotkeyHWnd = CreateDialog(hInst, MAKEINTRESOURCE(IDD_CONTROLCONF), hWnd, (DLGPROC) &InputCapture::ConfigureInput);
 
 						// Get the coordinates of the Hourglass main window, and the desktop.
 						RECT desktopRect = {};

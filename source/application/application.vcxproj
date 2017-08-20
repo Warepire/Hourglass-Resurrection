@@ -227,6 +227,7 @@
     <ClInclude Include="Utils\File.h" />
     <ClInclude Include="Utils\COM.h" />
     <ClInclude Include="Utils\Thread.h" />
+    <ClInclude Include="wintaser.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="wintaser.ico" />
