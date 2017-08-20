@@ -36,6 +36,12 @@
     <Filter Include="Source Files\Utils\Thread">
       <UniqueIdentifier>{a9554fd0-cd89-4fdc-ad98-782257099fe9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GUI\Core">
+      <UniqueIdentifier>{833771bd-57d8-497c-9a96-56296828fb7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GUI\Utils">
+      <UniqueIdentifier>{535eb9f0-3ddc-415d-9bf7-03dd44f7039c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomDLGs.cpp">
@@ -85,12 +91,6 @@
     </ClCompile>
     <ClCompile Include="md5.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\DlgBase.cpp">
-      <Filter>Source Files\GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\Menu.cpp">
-      <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="MainMenu.cpp">
       <Filter>Source Files</Filter>
@@ -142,6 +142,18 @@
     </ClCompile>
     <ClCompile Include="Utils\Arguments.cpp">
       <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Core\DlgBase.cpp">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Core\Menu.cpp">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Utils\ListViewUtils.cpp">
+      <Filter>Source Files\GUI\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\MainWindow.cpp">
+      <Filter>Source Files\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -214,12 +226,6 @@
     <ClInclude Include="MD5Checksum.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\DlgBase.h">
-      <Filter>Source Files\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\Menu.h">
-      <Filter>Source Files\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="MainMenu.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -282,6 +288,18 @@
     </ClInclude>
     <ClInclude Include="Utils\Arguments.h">
       <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Core\DlgBase.h">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Core\Menu.h">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Utils\ListViewUtils.h">
+      <Filter>Source Files\GUI\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\MainWindow.h">
+      <Filter>Source Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

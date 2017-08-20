@@ -36,10 +36,11 @@
  * success. When creating a Prompt dialog, SpawnDialogBox() will return the result of the dialog
  * box when it exits.
  *
- * The purpose of SendMessage and SendDlgItemMessage is to send messages to the window and it's
- * controls, without keeping track of the HWND.
- * Don't just proxy this call in your window class, wrap it to obscure the message IDs as well.
- * You're meant to have class members that look like this (example code, do not actually use):
+ * The purpose of the overloaded WinAPI calls are to send messages to the window and it's controls,
+ * without needing to know the HWND.
+ * If you provide an external interface to your class, don't just proxy all paramterized calls,
+ * wrap them where it makes sense.
+ * You should have class members that look like this (example code, do not actually use):
  * bool SendCloseMessage()
  * {
  *    SendMessage(WM_CLOSE, 0, 0);
@@ -52,15 +53,7 @@
  * Some items like the DropDownList and ListView need further initialization during WM_INITDIALOG
  * as some of their settings are not exposed as style flags, but need setting using
  * SendDlgItemMessage().
- * These can be set during init by using the param-parameter to the SpawnDialogBox function.
- *
- * DlgProcCallback:
- * This is a callback definition that is more flexible than the original DLGPROC.
- * The declaration is almost the same as a normal DLGPROC, the only difference is that the CALLBACK
- * keyword must be omitted.
- * Example:
- *     INT_PTR MyCallback(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {}
- * The flexibility comes from this variant being possible to be bound with std::bind.
+ * Use a WM_INITDIALOG callback and perform the init steps in that.
  */
 
 /*
@@ -70,11 +63,11 @@
 #undef SendMessage
 #undef SendDlgItemMessage
 
+class CallbackBase;
+
 class DlgBase
 {
 protected:
-    using DlgProcCallback = std::function<INT_PTR(HWND,UINT,WPARAM,LPARAM)>;
-
     enum class DlgType
     {
         NORMAL,
@@ -99,6 +92,7 @@ protected:
                        DWORD id,
                        SHORT x, SHORT y,
                        SHORT w, SHORT h,
+                       bool disable,
                        bool default_choice);
     void AddCheckbox(const std::wstring& caption,
                      DWORD id,
@@ -112,7 +106,7 @@ protected:
                         bool right_hand,
                         bool group_with_prev);
     void AddUpDownControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
-    void AddEditControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h, bool multi_line);
+    void AddEditControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h, bool disabled, bool multi_line);
     void AddStaticText(const std::wstring& caption, DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
     void AddStaticPanel(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
     void AddGroupBox(const std::wstring& caption, DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
@@ -125,16 +119,17 @@ protected:
     void AddTabControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
 
 
-    INT_PTR SpawnDialogBox(const DlgBase* parent,
-                           DlgProcCallback callback,
-                           LPARAM init_param,
-                           const DlgMode mode);
+    INT_PTR SpawnDialogBox(const DlgBase* parent, const DlgMode mode);
 
     LRESULT SendMessage(UINT msg, WPARAM w_param, LPARAM l_param);
     LRESULT SendDlgItemMessage(int item_id, UINT msg, WPARAM w_param, LPARAM l_param);
     BOOL ShowDialogBox(int show_window_cmd);
     BOOL UpdateWindow();
+    void SetReturnCode(INT_PTR return_code);
+    BOOL DestroyDialog();
     bool AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITEMW data);
+
+    void RegisterControlEventCallback(DWORD id, std::function<bool(WORD)> cb);
 
 private:
     void AddObject(DWORD ex_style, DWORD style,
@@ -144,26 +139,25 @@ private:
                    SHORT x, SHORT y,
                    SHORT w, SHORT h);
 
-    /*
-     * Due to DLGPROC types being a C-style function pointer, we cannot std::bind it.
-     * Instead we have these generic callbacks, which only purpose is to call the std::bind bound
-     * callbacks given to SpawnDialogBox().
-     */
-    static INT_PTR CALLBACK BaseCallback(HWND window, UINT msg, WPARAM w_param, LPARAM l_param);
-    INT_PTR LocalCallback(HWND window, UINT msg, WPARAM w_param, LPARAM l_param);
+    bool DestroyCallback();
+    bool NcDestroyCallback();
 
-    struct LParamData
-    {
-        LParamData(LPARAM init_data, DlgBase* dialog) :
-            m_original_data(init_data),
-            m_dialog(dialog) {}
+    static DWORD ms_ref_count;
 
-        LPARAM m_original_data;
-        DlgBase* m_dialog;
-    };
-
-    static std::map<HWND, DlgBase*> ms_hwnd_to_dlgbase_map;
     std::vector<BYTE> m_window;
     HWND m_handle;
-    DlgProcCallback m_callback;
+    DlgMode m_mode;
+    bool m_return_code_set;
+    INT_PTR m_return_code;
+
+    std::map<UINT, std::unique_ptr<CallbackBase>> m_wm_command_callbacks;
+    std::map<UINT, std::unique_ptr<CallbackBase>> m_message_callbacks;
+
+    INT_PTR DlgCallback(HWND window, UINT msg, WPARAM wparam, LPARAM lparam);
+    /*
+     * Due to DLGPROC types being a C-style function pointer, we cannot std::bind it.
+     * Instead we have to use this generic callback, which only purpose is to call registered callbacks.
+     */
+    static INT_PTR CALLBACK BaseCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+    static std::map<HWND, DlgBase*> ms_hwnd_dlgbase_map;
 };

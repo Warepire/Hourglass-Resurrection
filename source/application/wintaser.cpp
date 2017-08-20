@@ -4743,6 +4743,7 @@ void SetOptionsFromArguments()
 
 
 //HACCEL hAccelTable = NULL;
+#include "GUI/MainWindow.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
@@ -4803,9 +4804,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     DbgHelp::Init();
 
-	MSG msg;
-	if (!InitInstance (hInstance, nCmdShow)) // this calls our DlgProc with WM_SHOWWINDOW
-		return FALSE;
+    hInst = hInstance;
+    MainWindow main_window;
+    main_window.Spawn(nCmdShow);
+
 	//hAccelTable = LoadAccelerators(hInstance, (LPCTSTR)IDC_WINTASER);
 
 	//Init_Input(hInst, hWnd);
@@ -4830,6 +4832,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 	// Main message loop:
 	//BOOL bRet;
 	//while((bRet = GetMessage(&msg, NULL, 0, 0)) != 0)
+    MSG msg;
 	while(true)
 	{
 		//if(bRet == -1)
@@ -4958,37 +4961,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 	PrepareForExit();
 
 	return (int) msg.wParam;
-}
-
-
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-	hInst = hInstance; // Store instance handle in our global variable
-
-	hWnd = CreateDialogParamW(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, (DLGPROC)DlgProc, 0);
-
-	if(!hWnd)
-		return FALSE;
-
-	SendMessageW(hWnd, WM_SETICON, WPARAM(ICON_SMALL), LPARAM(LoadImageW(hInst, MAKEINTRESOURCEW(IDI_MYICON), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR)));
-	SendMessageW(hWnd, WM_SETICON, WPARAM(ICON_BIG),   LPARAM(LoadImageW(hInst, MAKEINTRESOURCEW(IDI_MYICON), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR)));
-
-	//hExternalWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-	//   CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
-
-	ShowWindow(hWnd, nCmdShow);
-	SetForegroundWindow(hWnd);
-	UpdateWindow(hWnd);
-
-	//#if 0
-	//   // remote viewport, for now I only use this for debugging eversion savestates
-	//   hExternalWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DIALOG2), hWnd, (DLGPROC)ViewportDlgProc);
-	//   SetWindowPos(hExternalWnd, NULL, 0,340, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-	//   ShowWindow(hExternalWnd, nCmdShow);
-	//   UpdateWindow(hExternalWnd);
-	//#endif
-
-	return TRUE;
 }
 
 static void EnableDisablePlayRecordButtons(HWND hDlg)
@@ -5510,7 +5482,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 					if(started || paused || lParam != 777)
 					{
 						if(paused && started)
-							SendMessage(hDlg, WM_COMMAND, ID_SWITCH_TO_TASEE_FROM_TASER, 0);
+							SendMessageW(hDlg, WM_COMMAND, ID_SWITCH_TO_TASEE_FROM_TASER, 0);
 						paused = !paused;
 						if(paused && localTASflags.fastForward)
 							temporaryUnpause = true; // fixes something I can't remember

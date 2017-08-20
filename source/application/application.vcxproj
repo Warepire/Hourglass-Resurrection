@@ -144,6 +144,10 @@
     <ClCompile Include="AVIDumping\AVIDumper.cpp" />
     <ClCompile Include="AVIDumping\WaitableBool.cpp" />
     <ClCompile Include="AVIDumping\WaveFormat.cpp" />
+    <ClCompile Include="GUI\Core\DlgBase.cpp" />
+    <ClCompile Include="GUI\Core\Menu.cpp" />
+    <ClCompile Include="GUI\MainWindow.cpp" />
+    <ClCompile Include="GUI\Utils\ListViewUtils.cpp" />
     <ClCompile Include="TrustedModule.cpp" />
     <ClCompile Include="Utils\Exceptions\WindowsExceptionsHandler.cpp" />
     <ClCompile Include="Utils\Arguments.cpp" />
@@ -159,8 +163,6 @@
     <ClCompile Include="DbgHelp\DbgHelpStackWalkHelper.cpp" />
     <ClCompile Include="DirLocks.cpp" />
     <ClCompile Include="ExeFileOperations.cpp" />
-    <ClCompile Include="GUI\DlgBase.cpp" />
-    <ClCompile Include="GUI\Menu.cpp" />
     <ClCompile Include="InjectDLL.cpp" />
     <ClCompile Include="InputCapture.cpp" />
     <ClCompile Include="logging.cpp" />
@@ -197,8 +199,10 @@
     <ClInclude Include="DbgHelp\DbgHelpTypes.h" />
     <ClInclude Include="DirLocks.h" />
     <ClInclude Include="ExeFileOperations.h" />
-    <ClInclude Include="GUI\DlgBase.h" />
-    <ClInclude Include="GUI\Menu.h" />
+    <ClInclude Include="GUI\Core\DlgBase.h" />
+    <ClInclude Include="GUI\Core\Menu.h" />
+    <ClInclude Include="GUI\MainWindow.h" />
+    <ClInclude Include="GUI\Utils\ListViewUtils.h" />
     <ClInclude Include="InjectDLL.h" />
     <ClInclude Include="InputCapture.h" />
     <ClInclude Include="logging.h" />
