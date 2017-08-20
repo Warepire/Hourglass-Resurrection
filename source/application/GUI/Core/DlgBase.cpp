@@ -647,6 +647,11 @@ bool DlgBase::AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITE
     return true;
 }
 
+void DlgBase::RegisterCloseEventCallback(std::function<bool()> cb)
+{
+    m_message_callbacks.emplace(WM_CLOSE, std::make_unique<Callback0>(cb));
+}
+
 void DlgBase::RegisterControlEventCallback(DWORD id, std::function<bool(WORD)> cb)
 {
     m_wm_command_callbacks.emplace(id, std::make_unique<CallbackWmCommand>(cb));

@@ -129,6 +129,7 @@ protected:
     BOOL DestroyDialog();
     bool AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITEMW data);
 
+    void RegisterCloseEventCallback(std::function<bool()> cb);
     void RegisterControlEventCallback(DWORD id, std::function<bool(WORD)> cb);
 
 private:
