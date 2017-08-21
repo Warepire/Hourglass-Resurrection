@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "shared/Alignment.h"
+
 #include "DlgBase.h"
 
 /*
@@ -231,7 +233,7 @@ DlgBase::DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h
     /*
      * Make sure the size is DWORD aligned to put the first child objects at the right offset.
      */
-    struct_size += (sizeof(DWORD) - (struct_size % sizeof(DWORD))) % sizeof(DWORD);
+    struct_size = AlignValueTo<sizeof(DWORD)>(struct_size);
 
     m_window.resize(struct_size);
 
@@ -463,7 +465,7 @@ void DlgBase::AddObject(DWORD ex_style, DWORD style,
     new_size += (sizeof(WCHAR) * caption.size());
     new_size += iterator;
 
-    new_size += (sizeof(DWORD) - (new_size % sizeof(DWORD))) % sizeof(DWORD);
+    new_size = AlignValueTo<sizeof(DWORD)>(new_size);
 
     m_window.resize(new_size);
 
