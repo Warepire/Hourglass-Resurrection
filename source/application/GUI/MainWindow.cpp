@@ -9,6 +9,7 @@
 
 #include <functional>
 
+#include "shared/version.h"
 #include "../wintaser.h"
 
 #include "application/GUI/Core/DlgBase.h"
@@ -46,9 +47,9 @@ enum MainWindowIDs
 
 MainWindow::MainWindow() :
     DlgBase(
-        L"Hourglass-Resurrection"
+        std::wstring(L"Hourglass-Resurrection v") + std::to_wstring(VERSION) + L"." + std::to_wstring(MINORVERSION)
 #ifdef _DEBUG
-        L" (debug)"
+        + L" (debug)"
 #endif
         , 0, 0, 301, 178, DlgType::NORMAL)
 {
