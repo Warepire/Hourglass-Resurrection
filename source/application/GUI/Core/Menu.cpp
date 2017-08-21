@@ -82,18 +82,23 @@ void Menu::BeginSubMenu(const std::wstring& name, DWORD id, bool enabled)
     BeginMenuCategory(name, id, enabled);
 }
 
-void Menu::AddMenuItem(const std::wstring& name, const std::wstring& shortcut, DWORD id, bool enabled, bool default_choice)
+void Menu::AddMenuItem(const std::wstring& name,
+                       const std::wstring& shortcut,
+                       const std::wstring& disable_reason,
+                       DWORD id, bool enabled, bool default_choice)
 {
     DWORD state = (enabled ? MFS_ENABLED : MFS_DISABLED) | (default_choice ? MFS_DEFAULT : 0);
-    AddMenuObject(name + L'\t' + shortcut, id, MFT_STRING, state, 0x00);
+    AddMenuObject(name + (enabled ? L'\t' + shortcut : L" (" + disable_reason + L')'), id, MFT_STRING, state, 0x00);
 }
 
-void Menu::AddCheckableMenuItem(const std::wstring& name, DWORD id,
-                                bool enabled, bool checked)
+void Menu::AddCheckableMenuItem(const std::wstring& name,
+                                const std::wstring& shortcut,
+                                const std::wstring& disable_reason,
+                                DWORD id, bool enabled, bool checked)
 {
     DWORD state = (enabled ? MFS_ENABLED : MFS_DISABLED) |
                   (checked ? MFS_CHECKED : MFS_UNCHECKED);
-    AddMenuObject(name, id, MFT_STRING, state, 0x00);
+    AddMenuObject(name + (enabled ? L'\t' + shortcut : L" (" + disable_reason + L')'), id, MFT_STRING, state, 0x00);
 }
 
 void Menu::AddMenuItemSeparator()

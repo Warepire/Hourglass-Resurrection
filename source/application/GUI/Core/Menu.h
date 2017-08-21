@@ -32,9 +32,14 @@ public:
 
     void BeginMenuCategory(const std::wstring& name, DWORD id, bool enabled);
     void BeginSubMenu(const std::wstring& name, DWORD id, bool enabled);
-    void AddMenuItem(const std::wstring& name, const std::wstring& shortcut, DWORD id, bool enabled, bool default_choice);
-    void AddCheckableMenuItem(const std::wstring& name, DWORD id,
-                              bool enabled, bool checked);
+    void AddMenuItem(const std::wstring& name,
+                     const std::wstring& shortcut,
+                     const std::wstring& disable_reason,
+                     DWORD id, bool enabled, bool default_choice);
+    void AddCheckableMenuItem(const std::wstring& name,
+                              const std::wstring& shortcut,
+                              const std::wstring& disable_reason,
+                              DWORD id, bool enabled, bool checked);
     void AddMenuItemSeparator();
 
     void EndMenuCategory();
