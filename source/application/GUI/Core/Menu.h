@@ -6,8 +6,10 @@
 
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -26,17 +28,23 @@ public:
     Menu();
     ~Menu();
 
-    void AddMenuCategory(const std::wstring& name, DWORD id, bool enabled, bool last);
-    void AddSubMenu(const std::wstring& name, DWORD id, bool enabled, bool last);
-    void AddMenuItem(const std::wstring& name, DWORD id, bool enabled, bool last, bool default_choice);
+    void BeginMenuCategory(const std::wstring& name, DWORD id, bool enabled);
+    void BeginSubMenu(const std::wstring& name, DWORD id, bool enabled);
+    void AddMenuItem(const std::wstring& name, const std::wstring& shortcut, DWORD id, bool enabled, bool default_choice);
     void AddCheckableMenuItem(const std::wstring& name, DWORD id,
-                              bool enabled, bool checked, bool last);
+                              bool enabled, bool checked);
     void AddMenuItemSeparator();
+
+    void EndMenuCategory();
+    void EndSubMenu();
 
     bool AttachMenu(HWND window);
 private:
 
     void AddMenuObject(const std::wstring& name, DWORD id, DWORD type, DWORD state, WORD res);
     std::vector<BYTE> m_menu;
+    DWORD m_menu_depth;
+    std::stack<DWORD> m_depth_offsets;
+
     HMENU m_loaded_menu;
 };

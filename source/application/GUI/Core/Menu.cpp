@@ -6,42 +6,14 @@
 
 #include <Windows.h>
 
+#include <cassert>
 #include <cwchar>
 #include <string>
 #include <vector>
 
-#include "Menu.h"
+#include "shared/Alignment.h"
 
-/*
- * Reference MENUEX_TEMPLATE_HEADER structure
- * struct MENUEX_TEMPLATE_HEADER
- * {
- *     WORD wVersion;
- *     WORD wOffset;
- *     DWORD dwHelpId;
- * };
- *
- * Reference MENUEX_TEMPLATE_ITEM structure (PopUp menu)
- * struct MENUEX_TEMPLATE_ITEM
- * {
- *     DWORD dwType;
- *     DWORD dwState;
- *     DWORD menuId;
- *     WORD bResInfo;
- *     WCHAR szText[];  <-- Variable length NULL terminated WCHAR array
- *     DWORD dwHelpId;  <-- Not included in the struct when a regular menu item is added
- * };
- *
- * Reference MENUEX_TEMPLATE_ITEM structure (Regular menu-item)
- * struct MENUEX_TEMPLATE_ITEM
- * {
- *     DWORD dwType;
- *     DWORD dwState;
- *     DWORD menuId;
- *     WORD bResInfo;
- *     WCHAR szText[];  <-- Variable length NULL terminated WCHAR array
- * };
- */
+#include "Menu.h"
 
 namespace
 {
@@ -49,23 +21,39 @@ namespace
     {
         IDC_STATIC = static_cast<DWORD>(-1),
     };
-    enum : DWORD
+
+#pragma pack(push,1)
+    struct MENUEX_TEMPLATE_HEADER
     {
-        MENUEX_TEMPLATE_HEADER_SIZE = (sizeof(WORD) * 2) + sizeof(DWORD),
-        MENUEX_TEMPLATE_ITEM_BASE_SIZE = (sizeof(DWORD) * 3) +
-                                         (sizeof(WORD) * 1) +
-                                         (sizeof(WCHAR) * 1),
+        WORD wVersion;
+        WORD wOffset;
+        DWORD dwHelpId;
     };
+    struct MENUEX_TEMPLATE_ITEM
+    {
+        DWORD dwType;
+        DWORD dwState;
+        DWORD menuId;
+        WORD bResInfo;
+        /*
+         * Variable length NULL terminated WCHAR array
+         */
+        WCHAR szText;
+        /*
+         * DWORD dwHelpId, only present when it's a popup menu.
+         */
+    };
+#pragma pack(pop)
 };
 
 Menu::Menu() :
+    m_menu_depth(0),
     m_loaded_menu(nullptr)
 {
-    DWORD iterator = 0;
-    m_menu.resize(MENUEX_TEMPLATE_HEADER_SIZE);
-    *reinterpret_cast<LPWORD>(&(m_menu[iterator])) = 0x01;
-    iterator += sizeof(WORD);
-    *reinterpret_cast<LPWORD>(&(m_menu[iterator])) = 0x04;
+    m_menu.resize(sizeof(MENUEX_TEMPLATE_HEADER));
+    auto header = reinterpret_cast<MENUEX_TEMPLATE_HEADER*>(m_menu.data());
+    header->wVersion = 0x01;
+    header->wOffset = 0x04;
 }
 
 Menu::~Menu()
@@ -76,35 +64,34 @@ Menu::~Menu()
     }
 }
 
-void Menu::AddMenuCategory(const std::wstring& name, DWORD id, bool enabled, bool last)
+void Menu::BeginMenuCategory(const std::wstring& name, DWORD id, bool enabled)
 {
+
     DWORD state = (enabled ? MFS_ENABLED : MFS_DISABLED);
-    WORD res = (last ? 0x80 : 0x00) | 0x01;
-    AddMenuObject(name, id, MFT_STRING, state, res);
+    m_menu_depth++;
+    AddMenuObject(name, id, MFT_STRING, state, 0x01);
 }
 
-void Menu::AddSubMenu(const std::wstring& name, DWORD id, bool enabled, bool last)
+void Menu::BeginSubMenu(const std::wstring& name, DWORD id, bool enabled)
 {
     /*
      * It's the same code-segment, just call the Category function instead
      */
-    AddMenuCategory(name, id, enabled, last);
+    BeginMenuCategory(name, id, enabled);
 }
 
-void Menu::AddMenuItem(const std::wstring& name, DWORD id, bool enabled, bool last, bool default_choice)
+void Menu::AddMenuItem(const std::wstring& name, const std::wstring& shortcut, DWORD id, bool enabled, bool default_choice)
 {
     DWORD state = (enabled ? MFS_ENABLED : MFS_DISABLED) | (default_choice ? MFS_DEFAULT : 0);
-    WORD res = (last ? 0x80 : 0x00);
-    AddMenuObject(name, id, MFT_STRING, state, res);
+    AddMenuObject(name + L'\t' + shortcut, id, MFT_STRING, state, 0x00);
 }
 
 void Menu::AddCheckableMenuItem(const std::wstring& name, DWORD id,
-                                bool enabled, bool checked, bool last)
+                                bool enabled, bool checked)
 {
     DWORD state = (enabled ? MFS_ENABLED : MFS_DISABLED) |
                   (checked ? MFS_CHECKED : MFS_UNCHECKED);
-    WORD res = (last ? 0x80 : 0x00);
-    AddMenuObject(name, id, MFT_STRING, state, res);
+    AddMenuObject(name, id, MFT_STRING, state, 0x00);
 }
 
 void Menu::AddMenuItemSeparator()
@@ -112,29 +99,60 @@ void Menu::AddMenuItemSeparator()
     AddMenuObject(L"", IDC_STATIC, MFT_SEPARATOR, 0, 0);
 }
 
+void Menu::EndMenuCategory()
+{
+    /*
+     * Having mismatched depth is a bug, and LoadMenuIndirectW will only tell you 0xD (Invalid data)
+     */
+    assert(m_menu_depth == 1);
+    m_menu_depth--;
+}
+
+void Menu::EndSubMenu()
+{
+    /*
+     * Having mismatched depth is a bug, and LoadMenuIndirectW will only tell you 0xD (Invalid data)
+     */
+    assert(m_menu_depth > 1);
+    m_menu_depth--;
+}
+
+
 void Menu::AddMenuObject(const std::wstring& name, DWORD id, DWORD type, DWORD state, WORD res)
 {
-    DWORD iterator = m_menu.size();
-    DWORD new_size = MENUEX_TEMPLATE_ITEM_BASE_SIZE;
+    /*
+     * Unset the previous item at current depth as the last item.
+     */
+    if (m_menu_depth < m_depth_offsets.size())
+    {
+        auto item = reinterpret_cast<MENUEX_TEMPLATE_ITEM*>(m_menu.data() + m_depth_offsets.top());
+        item->bResInfo &= ~0x80;
+        m_depth_offsets.pop();
+    }
+
+    SIZE_T old_size = m_menu.size();
+
+    m_depth_offsets.emplace(old_size);
+    DWORD new_size = sizeof(MENUEX_TEMPLATE_ITEM) + old_size;
     new_size += (sizeof(WCHAR) * name.size());
     new_size += ((res & 0x01) != 0x00) ? sizeof(DWORD) : 0;
-    new_size += iterator;
-    new_size += (sizeof(DWORD) - (new_size % sizeof(DWORD))) % sizeof(DWORD);
+    new_size = AlignValueTo<sizeof(DWORD)>(new_size);
 
     m_menu.resize(new_size);
 
-    *reinterpret_cast<LPDWORD>(&(m_menu[iterator])) = type;
-    iterator += sizeof(DWORD);
-    *reinterpret_cast<LPDWORD>(&(m_menu[iterator])) = state;
-    iterator += sizeof(DWORD);
-    *reinterpret_cast<LPDWORD>(&(m_menu[iterator])) = id;
-    iterator += sizeof(DWORD);
-    *reinterpret_cast<LPWORD>(&(m_menu[iterator])) = res;
-    iterator += sizeof(WORD);
+    auto item = reinterpret_cast<MENUEX_TEMPLATE_ITEM*>(m_menu.data() + old_size);
+
+    item->dwType = type;
+    item->dwState = state;
+    item->menuId = id;
+    /*
+     * Always assume it's the last item
+     */
+    item->bResInfo = res | 0x80;
 
     if (type != MFT_SEPARATOR)
     {
-        wmemcpy(reinterpret_cast<LPWSTR>(&(m_menu[iterator])), name.c_str(), name.size());
+        wmemcpy(&item->szText, name.c_str(), name.size());
     }
 }
 
