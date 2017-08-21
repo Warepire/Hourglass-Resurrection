@@ -16,6 +16,8 @@
 
 #include "shared/Alignment.h"
 
+#include "Menu.h"
+
 #include "DlgBase.h"
 
 /*
@@ -68,6 +70,10 @@
 
 namespace
 {
+    enum : int
+    {
+        IDC_DLGBASE_INTERNAL_MENU_ANCHOR = -1,
+    };
     enum : DWORD
     {
         /*
@@ -311,6 +317,12 @@ DlgBase::DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h
     wmemcpy(reinterpret_cast<LPWSTR>(&(m_window[iterator])),
             L"MS Shell Dlg",
             ARRAYSIZE(L"MS Shell Dlg") - 1);
+
+    /*
+     * Hack to resize windows when adding menus.
+     * -- Warepire
+     */
+    AddStaticText(L"", IDC_DLGBASE_INTERNAL_MENU_ANCHOR, 0, 0, 1, 1);
 }
 
 DlgBase::~DlgBase()
@@ -647,6 +659,39 @@ bool DlgBase::AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITE
     ::SetWindowPos(m_handle, NULL, new_pos.left, new_pos.top, NULL, NULL, SWP_NOSIZE);
 
     return true;
+}
+
+bool DlgBase::SetMenu(const Menu* menu) const
+{
+    HWND anchor_hwnd = GetDlgItem(m_handle, IDC_DLGBASE_INTERNAL_MENU_ANCHOR);
+    RECT old_rect = {};
+    RECT new_rect = {};
+    GetWindowRect(anchor_hwnd, &old_rect);
+
+    BOOL rv = ::SetMenu(m_handle, menu->m_loaded_menu);
+
+    /*
+     * If setting the menu pushed the window contents down,
+     * extend the bottom of the window by the same amount.
+     */
+    GetWindowRect(anchor_hwnd, &new_rect);
+    int change = new_rect.top - old_rect.top;
+    if (change != 0)
+    {
+        RECT rect;
+        GetWindowRect(m_handle, &rect);
+        SetWindowPos(m_handle, nullptr, 0, 0,
+                     rect.right - rect.left,
+                     change + rect.bottom - rect.top,
+                     SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+    }
+
+    return (rv == TRUE) ? true : false;
+}
+
+void DlgBase::RegisterCreateEventCallback(std::function<bool()> cb)
+{
+    m_message_callbacks.emplace(WM_INITDIALOG, std::make_unique<Callback0>(cb));
 }
 
 void DlgBase::RegisterCloseEventCallback(std::function<bool()> cb)

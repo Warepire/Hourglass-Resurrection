@@ -64,6 +64,7 @@
 #undef SendDlgItemMessage
 
 class CallbackBase;
+class Menu;
 
 class DlgBase
 {
@@ -129,6 +130,7 @@ protected:
     BOOL DestroyDialog();
     bool AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITEMW data);
 
+    void RegisterCreateEventCallback(std::function<bool()> cb);
     void RegisterCloseEventCallback(std::function<bool()> cb);
     void RegisterControlEventCallback(DWORD id, std::function<bool(WORD)> cb);
 
@@ -139,6 +141,8 @@ private:
                    DWORD id,
                    SHORT x, SHORT y,
                    SHORT w, SHORT h);
+
+    bool SetMenu(const Menu* menu) const;
 
     bool DestroyCallback();
     bool NcDestroyCallback();
@@ -161,4 +165,6 @@ private:
      */
     static INT_PTR CALLBACK BaseCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
     static std::map<HWND, DlgBase*> ms_hwnd_dlgbase_map;
+
+    friend class Menu;
 };

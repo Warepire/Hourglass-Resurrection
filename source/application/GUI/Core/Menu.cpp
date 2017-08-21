@@ -13,6 +13,8 @@
 
 #include "shared/Alignment.h"
 
+#include "DlgBase.h"
+
 #include "Menu.h"
 
 namespace
@@ -156,19 +158,16 @@ void Menu::AddMenuObject(const std::wstring& name, DWORD id, DWORD type, DWORD s
     }
 }
 
-/*
- * TODO: Make sure attaching a menu fixes the size of the dialog
- * -- Warepire
- */
-
-bool Menu::AttachMenu(HWND window)
+bool Menu::AttachMenu(const DlgBase* dlg)
 {
     m_loaded_menu = LoadMenuIndirectW(reinterpret_cast<LPMENUTEMPLATEW>(m_menu.data()));
+    // Fails here, 0xD, invalid data.
+    DWORD error = GetLastError();
     if (m_loaded_menu == nullptr)
     {
         return false;
     }
-    if (SetMenu(window, m_loaded_menu) == FALSE)
+    if (!dlg->SetMenu(this))
     {
         DestroyMenu(m_loaded_menu);
         m_loaded_menu = nullptr;

@@ -22,6 +22,8 @@
  * be called from the Dialog Init message.
  */
 
+class DlgBase;
+
 class Menu
 {
 public:
@@ -38,13 +40,15 @@ public:
     void EndMenuCategory();
     void EndSubMenu();
 
-    bool AttachMenu(HWND window);
-private:
+    bool AttachMenu(const DlgBase* dlg);
 
+private:
     void AddMenuObject(const std::wstring& name, DWORD id, DWORD type, DWORD state, WORD res);
     std::vector<BYTE> m_menu;
     DWORD m_menu_depth;
     std::stack<DWORD> m_depth_offsets;
 
     HMENU m_loaded_menu;
+
+    friend class DlgBase;
 };
