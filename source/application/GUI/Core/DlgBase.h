@@ -15,12 +15,6 @@
 #include <vector>
 
 /*
- * A lot of object types are missing, please add them as necessary.
- * Refer to the currently implemented objects when creating new ones.
- * -- Warepire
- */
-
-/*
  * ------------------------------------------------------------------------------------------------
  *                                   Implementation notes
  * ------------------------------------------------------------------------------------------------
@@ -69,56 +63,22 @@ class Menu;
 class DlgBase
 {
 protected:
-    enum class DlgType
-    {
-        NORMAL,
-        TAB_PAGE,
-    };
-
     enum class DlgMode
     {
         PROMPT,
         INDIRECT,
     };
 
-    DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h, DlgType type);
+    DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h);
     ~DlgBase();
 
-    /*
-     * TODO: Categorize.
-     * -- Warepire
-     */
-
-    void AddPushButton(const std::wstring& caption,
-                       DWORD id,
-                       SHORT x, SHORT y,
-                       SHORT w, SHORT h,
-                       bool disable,
-                       bool default_choice);
-    void AddCheckbox(const std::wstring& caption,
-                     DWORD id,
-                     SHORT x, SHORT y,
-                     SHORT w, SHORT h,
-                     bool right_hand);
-    void AddRadioButton(const std::wstring& caption,
-                        DWORD id,
-                        SHORT x, SHORT y,
-                        SHORT w, SHORT h,
-                        bool right_hand,
-                        bool group_with_prev);
-    void AddUpDownControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
-    void AddEditControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h, bool disabled, bool multi_line);
-    void AddStaticText(const std::wstring& caption, DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
-    void AddStaticPanel(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
-    void AddGroupBox(const std::wstring& caption, DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
-    void AddDropDownList(DWORD id, SHORT x, SHORT y, SHORT w, SHORT drop_distance);
-    void AddListView(DWORD id,
-                     SHORT x, SHORT y,
-                     SHORT w, SHORT h,
-                     bool single_selection, bool owner_data);
-    void AddIPEditControl(DWORD id, SHORT x, SHORT y);
-    void AddTabControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
-
+    //void AddUpDownControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h);
+    //void AddDropDownList(DWORD id, SHORT x, SHORT y, SHORT w, SHORT drop_distance);
+    //void AddListView(DWORD id,
+    //                 SHORT x, SHORT y,
+    //                 SHORT w, SHORT h,
+    //                 bool single_selection, bool owner_data);
+    //void AddIPEditControl(DWORD id, SHORT x, SHORT y);
 
     INT_PTR SpawnDialogBox(const DlgBase* parent, const DlgMode mode);
 
@@ -128,20 +88,17 @@ protected:
     BOOL UpdateWindow();
     void SetReturnCode(INT_PTR return_code);
     BOOL DestroyDialog();
-    bool AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITEMW data);
+
+    DWORD GetNextID();
+    SIZE_T AddObject(const std::vector<BYTE>& object);
+    void SetNewStyle(SIZE_T obj_offset, DWORD ex_style, DWORD style);
 
     void RegisterCreateEventCallback(std::function<bool()> cb);
     void RegisterCloseEventCallback(std::function<bool()> cb);
-    void RegisterControlEventCallback(DWORD id, std::function<bool(WORD)> cb);
+
+    void RegisterWmControlCallback(DWORD id, std::function<bool(WORD)> cb);
 
 private:
-    void AddObject(DWORD ex_style, DWORD style,
-                   const std::wstring& window_class,
-                   const std::wstring& caption,
-                   DWORD id,
-                   SHORT x, SHORT y,
-                   SHORT w, SHORT h);
-
     bool SetMenu(const Menu* menu) const;
 
     bool DestroyCallback();
@@ -155,6 +112,8 @@ private:
     bool m_return_code_set;
     INT_PTR m_return_code;
 
+    DWORD m_next_id;
+
     std::map<UINT, std::unique_ptr<CallbackBase>> m_wm_command_callbacks;
     std::map<UINT, std::unique_ptr<CallbackBase>> m_message_callbacks;
 
@@ -167,4 +126,7 @@ private:
     static std::map<HWND, DlgBase*> ms_hwnd_dlgbase_map;
 
     friend class Menu;
+
+    template<std::size_t>
+    friend class ObjBase;
 };

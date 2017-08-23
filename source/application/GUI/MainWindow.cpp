@@ -13,6 +13,13 @@
 #include "../wintaser.h"
 
 #include "application/GUI/Core/DlgBase.h"
+#include "application/GUI/Objects/CheckboxButton.h"
+#include "application/GUI/Objects/EditControl.h"
+#include "application/GUI/Objects/GroupBox.h"
+#include "application/GUI/Objects/PushButton.h"
+#include "application/GUI/Objects/RadioButton.h"
+#include "application/GUI/Objects/StaticText.h"
+
 #include "MainWindow.h"
 
 enum MainWindowIDs : WORD
@@ -188,43 +195,43 @@ MainWindow::MainWindow() :
     DlgBase(
         std::wstring(L"Hourglass-Resurrection v") + std::to_wstring(VERSION) + L"." + std::to_wstring(MINORVERSION)
 #ifdef _DEBUG
-        + L" (debug)"
+                     + L" (debug)"
 #endif
-        , 0, 0, 301, 178, DlgType::NORMAL)
+        , 0, 0, 301, 178)
 {
-    AddRadioButton(L"Read-Only", IDC_RADIO_READONLY, 235, 44, 50, 10, false, false);
-    AddRadioButton(L"Read+Write", IDC_RADIO_READWRITE, 235, 56, 54, 10, false, true);
-    AddEditControl(IDC_TEXT_MOVIE, 7, 13, 230, 14, true, false);
-    AddStaticText(L"Movie File", IDC_STATIC, 10, 3, 32, 8);
-    AddPushButton(L"Browse...", IDC_BUTTON_MOVIEBROWSE, 246, 13, 48, 14, false, false);
-    AddStaticText(L"Frame:", IDC_STATIC, 12, 32, 27, 8);
-    AddStaticText(L"Re-records:", IDC_STATIC, 49, 61, 39, 8);
-    AddStaticText(L"Frames per Second:", IDC_STATIC, 21, 47, 80, 8);
-    AddEditControl(IDC_EDIT_FPS, 91, 45, 40, 12, false, false);
-    AddEditControl(IDC_EDIT_CURFRAME, 38, 30, 40, 12, false, false);
-    AddEditControl(IDC_EDIT_MAXFRAME, 91, 30, 40, 12, false, false);
-    AddStaticText(L"/", IDC_STATIC_FRAMESLASH, 83, 32, 8, 8);
-    AddEditControl(IDC_EDIT_RERECORDS, 91, 59, 40, 12, false, false);
-    AddStaticText(L"Time: 0h 5m 32.15s   /   0h 16m 44.12s", IDC_STATIC_MOVIETIME, 144, 32, 149, 8);
-    AddStaticText(L"Current FPS: 0", IDC_STATIC_CURRENTFPS, 144, 47, 82, 8);
-    AddEditControl(IDC_TEXT_EXE, 7, 134, 230, 14, true, false);
-    AddStaticText(L"Game Executable", IDC_STATIC, 10, 125, 56, 8);
-    AddPushButton(L"Browse...", IDC_BUTTON_GAMEBROWSE, 246, 134, 48, 14, false, false);
-    AddStaticText(L"System Time: ", IDC_STATIC, 21, 79, 66, 8);
-    AddEditControl(IDC_EDIT_SYSTEMCLOCK, 71, 77, 60, 12, false, false);
-    AddStaticText(L"Current Status: Playing", IDC_STATIC_MOVIESTATUS, 144, 61, 91, 8);
-    AddPushButton(L"Run and Record New Movie", IDC_BUTTON_RECORD, 8, 154, 99, 17, true, false);
-    AddPushButton(L"Run and Play Existing Movie", IDC_BUTTON_PLAY, 192, 154, 102, 17, true, false);
-    AddPushButton(L"Stop Running", IDC_BUTTON_STOP, 116, 154, 67, 17, true, false);
-    AddCheckbox(L"Paused", IDC_PAUSED, 236, 69, 39, 10, false);
-    AddGroupBox(L"Multithreading and Wait Sync", IDC_STATIC, 13, 94, 118, 23);
-    AddRadioButton(L"Allow", IDC_RADIO_THREAD_ALLOW, 20, 103, 33, 10, false, false);
-    AddRadioButton(L"Wrap", IDC_RADIO_THREAD_WRAP, 54, 103, 33, 10, false, true);
-    AddRadioButton(L"Disable", IDC_RADIO_THREAD_DISABLE, 88, 103, 39, 10, false, true);
-    AddCheckbox(L"Mute", IDC_CHECK_MUTE, 246, 108, 39, 10, false);
-    AddCheckbox(L"Fast-Forward", IDC_FASTFORWARD, 236, 82, 57, 10, false);
-    AddStaticText(L"Command Line Arguments", IDC_STATIC, 143, 94, 97, 8);
-    AddEditControl(IDC_EDIT_COMMANDLINE, 140, 104, 97, 12, false, false);
+    RadioButton read_only(L"Read-Only", 235, 44, 50, 10, this); read_only.SetAsNewGroup();
+    RadioButton read_write(L"Read+Write", 235, 56, 54, 10, this);
+    EditControl movie_filename(L"", 7, 13, 230, 14, this); movie_filename.SetDisabled();
+    StaticText(L"Movie File", 10, 3, 32, 8, this);
+    PushButton browse_movie(L"Browse...", 246, 13, 48, 14, this);
+    StaticText(L"Frame:", 12, 32, 27, 8, this);
+    StaticText(L"Re-records:", 49, 61, 39, 8, this);
+    StaticText(L"Frames per Second:", 21, 47, 80, 8, this);
+    EditControl fps(L"", 91, 45, 40, 12, this);
+    EditControl curframe(L"", 38, 30, 40, 12, this);
+    EditControl maxframe(L"", 91, 30, 40, 12, this);
+    StaticText frameslash(L"/", 83, 32, 8, 8, this);
+    EditControl rerecs(L"", 91, 59, 40, 12, this);
+    StaticText movietime(L"Time: 0h 5m 32.15s   /   0h 16m 44.12s", 144, 32, 149, 8, this);
+    StaticText curfps(L"Current FPS: 0", 144, 47, 82, 8, this);
+    EditControl exe(L"", 7, 134, 230, 14, this); exe.SetDisabled();
+    StaticText(L"Game Executable", 10, 125, 56, 8, this);
+    PushButton browse_exe(L"Browse...", 246, 134, 48, 14, this);
+    StaticText(L"System Time: ", 21, 79, 66, 8, this);
+    EditControl sysclock(L"", 71, 77, 60, 12, this);
+    StaticText movie_status(L"Current Status: Playing", 144, 61, 91, 8, this);
+    PushButton run_record(L"Run and Record New Movie", 8, 154, 99, 17, this); run_record.SetDisabled();
+    PushButton play(L"Run and Play Existing Movie", 192, 154, 102, 17, this); play.SetDisabled();
+    PushButton stop(L"Stop Running", 116, 154, 67, 17, this); stop.SetDisabled();
+    CheckboxButton paused(L"Paused", 236, 69, 39, 10, this);
+    GroupBox(L"Multithreading and Wait Sync", 13, 94, 118, 23, this);
+    RadioButton thread_allow(L"Allow", 20, 103, 33, 10, this); thread_allow.SetAsNewGroup();
+    RadioButton thread_wrap(L"Wrap", 54, 103, 33, 10, this);
+    RadioButton thread_disable(L"Disable", 88, 103, 39, 10, this);
+    CheckboxButton mute(L"Mute", 246, 108, 39, 10, this);
+    CheckboxButton f_forward(L"Fast-Forward", 236, 82, 57, 10, this);
+    StaticText(L"Command Line Arguments", 143, 94, 97, 8, this);
+    EditControl cmdline(L"", 140, 104, 97, 12, this);
 
     RegisterCreateEventCallback(std::bind(&MainWindow::OnCreateEvent, this));
     RegisterCloseEventCallback(std::bind(&MainWindow::OnCloseEvent, this));
@@ -272,7 +279,7 @@ void MainWindow::CreateMenu()
     }
     bool on = true;
 
-    m_menu.BeginMenuCategory(L"&File", IDC_STATIC, true);
+    m_menu.BeginMenuCategory(L"&File", L"", IDC_STATIC, true);
 
     on = !exe_filename_only.empty() && !started;
     m_menu.AddMenuItem(std::wstring(L"&Open Executable...") + (on ? L"(now open: \"" : L"") + (on ? exe_filename_only : L"") + (on ? L"\")" : L""),
@@ -288,183 +295,45 @@ void MainWindow::CreateMenu()
     m_menu.AddMenuItem(L"&Watch From Beginning", L"", L"Movie is not playing", ID_FILES_WATCHMOV, started && localTASflags.playback, false);
 
     m_menu.AddMenuItemSeparator();
-    
+
     m_menu.AddMenuItem(L"&Record New Movie...", L"Ctrl+R", started ? L"Must stop running first" : L"Must open an executable first", ID_FILES_RECORDMOV, !started && exeFileExists, false);
     m_menu.AddMenuItem(L"Backup Movie to File...", L"", L"Must be recording", ID_FILES_BACKUPMOVIE, started && !localTASflags.playback, false);
     m_menu.AddMenuItem(L"Resume Recording from Now", L"", L"Movie must be playing", ID_FILES_RESUMERECORDING, started && localTASflags.playback && !finished, false);
 
+    m_menu.AddMenuItemSeparator();
+
+    m_menu.AddMenuItem(L"Save Config As...", L"", L"", ID_FILES_SAVECONFIGAS, true, false);
+    m_menu.AddMenuItem(L"Load Config From...", L"", L"", ID_FILES_LOADCONFIGFROM, true, false);
 
     m_menu.AddMenuItemSeparator();
-//#if 0
-//    HelperFuncInsertMenuByID(Files, i++, Flags, ID_FILES_SAVECONFIG, "", "Save Config", 0);
-//#endif
-//    HelperFuncInsertMenuByID(Files, i++, Flags, ID_FILES_SAVECONFIGAS, L"", L"Save Config As...", 0);
-//    HelperFuncInsertMenuByID(Files, i++, Flags, ID_FILES_LOADCONFIGFROM, L"", L"Load Config From...", 0);
-//
-//#if 0
-//    InsertMenu(Files, i++, MF_SEPARATOR, NULL, NULL);
-//    if (strcmp(Recent_Rom[0], ""))
-//    {
-//        HelperFuncInsertMenuByID(Files, i++, MF_BYPOSITION | MF_POPUP | MF_STRING, FilesHistory, "", "&Recent EXEs", 0);
-//        InsertMenu(Files, i++, MF_SEPARATOR, NULL, NULL);
-//    }
-//#endif
-//
-//    InsertMenu(Files, i++, MF_SEPARATOR, NULL, NULL);
-//    HelperFuncInsertMenuByID(Files, i++, Flags | (!started ? MF_GRAYED : 0), ID_FILES_STOP_RELAY, L"", L"Stop Running", L"already stopped");
-//    InsertMenu(Files, i++, MF_SEPARATOR, NULL, NULL);
+
+    m_menu.AddMenuItem(L"Stop Running", L"", L"Already stopped", ID_FILES_STOP_RELAY, started, false);
+
+    m_menu.AddMenuItemSeparator();
+
     m_menu.AddMenuItem(L"E&xit", L"Alt+F4", L"", ID_FILES_QUIT, true, true);
     m_menu.EndMenuCategory();
 
-//#if 0
-//    // Menu FilesChangeState
-//
-//    HelperFuncInsertMenuByID(FilesChangeState, i++, Flags, ID_FILES_PREVIOUSSTATE, "Previous State", "", "Previous State");
-//    HelperFuncInsertMenuByID(FilesChangeState, i++, Flags, ID_FILES_NEXTSTATE, "Next State", "", "Next State");
-//    InsertMenu(FilesChangeState, i++, MF_SEPARATOR, NULL, NULL);
-//    for (j = 0; j < 10; j++)
-//    {
-//        sprintf(Str_Tmp, "Set &%d", (j + 1) % 10);
-//        HelperFuncInsertMenuByID(FilesChangeState, i++, Flags | (Current_State == ((j + 1) % 10) ? MF_CHECKED : MF_UNCHECKED), ID_FILES_SETSTATE_1 + j, Str_Tmp, "", Str_Tmp);
-//    }
-//
-//    HelperFuncInsertMenuByID(FilesSaveState, i++, Flags, ID_FILES_SAVESTATE, "Save State", "\tF5", "Quick &Save");
-//    HelperFuncInsertMenuByID(FilesSaveState, i++, Flags, ID_FILES_SAVESTATEAS, "Save State as", "\tShift+F5", "&Save State as...");
-//    InsertMenu(FilesSaveState, i++, MF_SEPARATOR, NULL, NULL);
-//    for (j = 0; j < 10; j++)
-//    {
-//        sprintf(Str_Tmp, "Save &%d", (j + 1) % 10);
-//        HelperFuncInsertMenuByID(FilesSaveState, i++, Flags, ID_FILES_SAVESTATE_1 + j, Str_Tmp, "", Str_Tmp);
-//    }
-//
-//    HelperFuncInsertMenuByID(FilesLoadState, i++, Flags, ID_FILES_LOADSTATE, "Load State", "\tF8", "Quick &Load");
-//    HelperFuncInsertMenuByID(FilesLoadState, i++, Flags, ID_FILES_LOADSTATEAS, "Load State as", "\tShift+F8", "&Load State...");
-//    InsertMenu(FilesLoadState, i++, MF_SEPARATOR, NULL, NULL);
-//    for (j = 0; j < 10; j++)
-//    {
-//        sprintf(Str_Tmp, "Load &%d", (j + 1) % 10);
-//        HelperFuncInsertMenuByID(FilesLoadState, i++, Flags, ID_FILES_LOADSTATE_1 + j, Str_Tmp, "", Str_Tmp);
-//    }
-//
-//    // Menu FilesHistory
-//
-//    for (i = 0; i < MAX_RECENT_ROMS; i++)
-//    {
-//        if (strcmp(Recent_Rom[i], ""))
-//        {
-//            char tmp[1024];
-//            switch (Detect_Format(Recent_Rom[i]) >> 1)
-//            {
-//            default:
-//                strcpy(tmp, "[---]    - "); // does not exist anymore
-//                break;
-//            case 1:
-//                strcpy(tmp, "[MD]   - ");
-//                break;
-//            }
-//            Get_Name_From_Path(Recent_Rom[i], Str_Tmp);
-//            strcat(tmp, Str_Tmp);
-//            // & is an escape sequence in windows menu names, so replace & with &&
-//            int len = strlen(tmp);
-//            for (int j = 0; j < len && len < 1023; j++)
-//                if (tmp[j] == '&')
-//                    memmove(tmp + j + 1, tmp + j, strlen(tmp + j) + 1), ++len, ++j;
-//            HelperFuncInsertMenuByID(FilesHistory, i, Flags, ID_FILES_OPENRECENTROM0 + i, tmp, "", tmp);
-//        }
-//        else break;
-//    }
-//#endif
-//        unsigned int Flags;
-//        int i = 0, j = 0;
-//        WCHAR str[1024];
-//        //char Str_Tmp[1024] = { 0 };
-//
-//        if (MainMenu)
-//            DestroyMenu(MainMenu);
-//
-//        MainMenu = ::CreateMenu();
-//
-//        HMENU Files = CreatePopupMenu();
-//        HMENU Graphics = CreatePopupMenu();
-//        HMENU CPU = CreatePopupMenu();
-//        HMENU Sound = CreatePopupMenu();
-//        HMENU Input = CreatePopupMenu();
-//        HMENU Exec = CreatePopupMenu();
-//        HMENU Options = CreatePopupMenu();
-//        HMENU TAS_Tools = CreatePopupMenu();
-//#if 0
-//        HMENU Time = CreatePopupMenu();
-//#endif
-//        HMENU Time = TAS_Tools;
-//        HMENU Avi = CreatePopupMenu();
-//        HMENU Help = CreatePopupMenu();
-//#if 0
-//        HMENU FilesChangeState = CreatePopupMenu();
-//        HMENU FilesSaveState = CreatePopupMenu();
-//        HMENU FilesLoadState = CreatePopupMenu();
-//        HMENU FilesHistory = CreatePopupMenu();
-//        HMENU GraphicsRender = CreatePopupMenu();
-//#endif
-//        HMENU GraphicsMemory = CreatePopupMenu();
-//#if 0
-//        HMENU GraphicsLayers = CreatePopupMenu();
-//        HMENU WindowOptions = CreatePopupMenu();
-//        HMENU CPUSlowDownSpeed = CreatePopupMenu();
-//#endif
-//        HMENU SoundFormat = CreatePopupMenu();
-//        HMENU TimeFastForward = CreatePopupMenu();
-//        HMENU TimeRate = CreatePopupMenu();
-//        HMENU ExecMultithreading = CreatePopupMenu();
-//        HMENU ExecTimers = CreatePopupMenu();
-//        HMENU ExecMessageSync = CreatePopupMenu();
-//        HMENU ExecWaitSync = CreatePopupMenu();
-//        HMENU ExecDlls = CreatePopupMenu();
-//        HMENU Locale = CreatePopupMenu();
-//        HMENU Affinity = CreatePopupMenu();
-//        HMENU DebugLogging = CreatePopupMenu();
-//        HMENU Performance = CreatePopupMenu();
-//#if 0
-//        HMENU Tools_Movies = CreatePopupMenu();
-//        HMENU Tools_AVI = CreatePopupMenu();
-//        HMENU Lua_Script = CreatePopupMenu();
-//#endif
-//        HMENU InputHotkeyFocus = CreatePopupMenu();
-//        HMENU InputInputFocus = CreatePopupMenu();
-//
-//
-//        std::wstring exe_filename_only;
-//        if (!exeFileExists)
-//        {
-//            size_t slash = exe_filename.find_last_of(L"\\/");
-//            if (slash != std::wstring::npos)
-//            {
-//                exe_filename_only = exe_filename.substr(slash + 1);
-//            }
-//            else
-//            {
-//                exe_filename_only = exe_filename;
-//            }
-//        }
-//        std::wstring movie_filename_only;
-//        if (!movieFileExists)
-//        {
-//            size_t slash = movie_filename.find_last_of(L"\\/");
-//            if (slash != std::wstring::npos)
-//            {
-//                movie_filename_only = movie_filename.substr(slash + 1);
-//            }
-//            else
-//            {
-//                movie_filename_only = movie_filename;
-//            }
-//        }
-//        bool on = true;
-//
-//        Flags = MF_BYPOSITION | MF_POPUP | MF_STRING;
-//
-//        i = 0;
-//        HelperFuncInsertMenu(MainMenu, i++, Flags, Files, L"", L"&File", 0);
-//        HelperFuncInsertMenu(MainMenu, i++, Flags, Graphics, L"", L"&Graphics", 0);
+    m_menu.BeginMenuCategory(L"&Graphics", L"", IDC_STATIC, true);
+
+    m_menu.AddCheckableMenuItem(L"Allow &Fullscreen / Display Mode Changes", L"", L"Can't change while running", ID_GRAPHICS_ALLOWFULLSCREEN, !started, !localTASflags.forceWindowed);
+
+    m_menu.AddMenuItemSeparator();
+
+    m_menu.AddCheckableMenuItem(L"&Allow Hardware Acceleration", L"", L"Can't change while running", ID_GRAPHICS_FORCESOFTWARE, !started, !localTASflags.forceSoftware);
+
+    //m_menu.BeginSubMenu(L"Surface &Memory", started ? L"Can't change while running" : L"Hardware acceleration must be enabled", IDC_STATIC, !localTASflags.forceSoftware && !started);
+
+    m_menu.AddCheckableMenuItem(L"&Let Game Choose", L"", L"", ID_GRAPHICS_MEM_DONTCARE, true, localTASflags.forceSurfaceMemory == 0);
+    m_menu.AddCheckableMenuItem(L"&System Memory               (Slow Draw, Fast Read)", L"", L"", ID_GRAPHICS_MEM_SYSTEM, true, localTASflags.forceSurfaceMemory == 1);
+    m_menu.AddCheckableMenuItem(L"&Non-Local Video Memory (Varies)", L"", L"", ID_GRAPHICS_MEM_NONLOCAL, true, localTASflags.forceSurfaceMemory == 2);
+    m_menu.AddCheckableMenuItem(L"Local &Video Memory        (Fast Draw, Slow Read)", L"", L"", ID_GRAPHICS_MEM_LOCAL, true, localTASflags.forceSurfaceMemory == 3);
+
+    //m_menu.EndSubMenu();
+
+    m_menu.EndMenuCategory();
+
+
 //        HelperFuncInsertMenu(MainMenu, i++, Flags, Sound, L"", L"&Sound", 0);
 //        HelperFuncInsertMenu(MainMenu, i++, Flags, Exec, L"", L"&Runtime", 0);
 //        HelperFuncInsertMenu(MainMenu, i++, Flags, Input, L"", L"&Input", 0);
@@ -476,21 +345,6 @@ void MainWindow::CreateMenu()
 //
 // 
 //
-//        // Graphics Menu
-//        Flags = MF_BYPOSITION | MF_STRING;
-//
-//        i = 0;
-//        HelperFuncInsertMenuByID(Graphics, i++, Flags | (!localTASflags.forceWindowed ? MF_CHECKED : MF_UNCHECKED) | (started ? MF_GRAYED : 0), ID_GRAPHICS_ALLOWFULLSCREEN, L"", L"Allow &Fullscreen / Display Mode Changes", L"can't change while running");
-//        InsertMenu(Graphics, i++, MF_SEPARATOR, NULL, NULL);
-//        HelperFuncInsertMenuByID(Graphics, i++, Flags | (!localTASflags.forceSoftware ? MF_CHECKED : MF_UNCHECKED) | (started ? MF_GRAYED : 0), ID_GRAPHICS_FORCESOFTWARE, L"", L"&Allow Hardware Acceleration", L"can't change while running");
-//        HelperFuncInsertMenu(Graphics, i++, Flags | MF_POPUP | ((localTASflags.forceSoftware || started) ? MF_GRAYED : 0), GraphicsMemory, L"", L"Surface &Memory", started ? L"can't change while running" : L"hardware acceleration must be enabled");
-//
-//        // GraphicsMemory Menu
-//        i = 0;
-//        HelperFuncInsertMenuByID(GraphicsMemory, i++, Flags | ((localTASflags.forceSurfaceMemory == 0) ? MF_CHECKED : MF_UNCHECKED), ID_GRAPHICS_MEM_DONTCARE, L"", L"&Let Game Choose", 0);
-//        HelperFuncInsertMenuByID(GraphicsMemory, i++, Flags | ((localTASflags.forceSurfaceMemory == 1) ? MF_CHECKED : MF_UNCHECKED), ID_GRAPHICS_MEM_SYSTEM, L"", L"&System Memory               (Slow Draw, Fast Read)", 0);
-//        HelperFuncInsertMenuByID(GraphicsMemory, i++, Flags | ((localTASflags.forceSurfaceMemory == 2) ? MF_CHECKED : MF_UNCHECKED), ID_GRAPHICS_MEM_NONLOCAL, L"", L"&Non-Local Video Memory (Varies)", 0);
-//        HelperFuncInsertMenuByID(GraphicsMemory, i++, Flags | ((localTASflags.forceSurfaceMemory == 3) ? MF_CHECKED : MF_UNCHECKED), ID_GRAPHICS_MEM_LOCAL, L"", L"Local &Video Memory        (Fast Draw, Slow Read)", 0);
 //
 //
 //        // Execution Menu

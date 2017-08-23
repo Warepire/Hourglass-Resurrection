@@ -30,8 +30,8 @@ public:
     Menu();
     ~Menu();
 
-    void BeginMenuCategory(const std::wstring& name, DWORD id, bool enabled);
-    void BeginSubMenu(const std::wstring& name, DWORD id, bool enabled);
+    void BeginMenuCategory(const std::wstring& name, const std::wstring& disable_reason, DWORD id, bool enabled);
+    void BeginSubMenu(const std::wstring& name, const std::wstring& disable_reason, DWORD id, bool enabled);
     void AddMenuItem(const std::wstring& name,
                      const std::wstring& shortcut,
                      const std::wstring& disable_reason,

@@ -16,96 +16,11 @@
 
 #include "shared/Alignment.h"
 
+#include "../Objects/StaticText.h"
+
 #include "Menu.h"
 
 #include "DlgBase.h"
-
-/*
- * wmemcpy is used over wcscpy, swprintf etc in this code. This is due to these methods end up
- * corrupting the DLGTEMPLATE structures causing Windows to read memory continously until it
- * reaches a memory access violation exception (and thus the program crashes).
- * -- Warepire
- */
-
-/*
- * Reference DLGTEMPLATEEX structure:
- * struct DLGTEMPLATEEX
- * {
- *     WORD      dlgVer;
- *     WORD      signature;
- *     DWORD     helpID;
- *     DWORD     exStyle;
- *     DWORD     style;
- *     WORD      cDlgItems;            --> Caps out at 0xFFFF items.
- *     short     x;
- *     short     y;
- *     short     cx;
- *     short     cy;
- *     sz_Or_Ord menu;                 --> Does not accept a HMENU, Use "SetMenu"
- *     sz_Or_Ord windowClass;
- *     WCHAR     title[titleLen];
- *     WORD      pointsize;
- *     WORD      weight;
- *     BYTE      italic;
- *     BYTE      charset;
- *     WCHAR     typeface[stringLen];  --> "MS Shell Dlg" pre-defined
- * };
- *
- * Reference DLGITEMTEMPLATEEX structure:
- * struct DLGITEMTEMPLATEEX
- * {
- *     DWORD     helpID;
- *     DWORD     exStyle;
- *     DWORD     style;
- *     short     x;
- *     short     y;
- *     short     cx;
- *     short     cy;
- *     DWORD     id;
- *     sz_Or_Ord windowClass;
- *     sz_Or_Ord title[titleLen];
- *     WORD      extraCount;
- * };
- */
-
-namespace
-{
-    enum : int
-    {
-        IDC_DLGBASE_INTERNAL_MENU_ANCHOR = -1,
-    };
-    enum : DWORD
-    {
-        /*
-         * The title must always contain at least a NULL character.
-         * The typeface is the string L"MS Shell Dlg\0".
-         */
-        DLGTEMPLATEEX_BASE_SIZE = (sizeof(WORD) * 2) +
-                                  (sizeof(DWORD) * 3) +
-                                  (sizeof(WORD) * 1) +
-                                  (sizeof(SHORT) * 4) +
-                                  (sizeof(WORD) * 1) +
-                                  (sizeof(WORD) * 1) +
-                                  (sizeof(WCHAR) * 1) +
-                                  (sizeof(WORD) * 2) +
-                                  (sizeof(BYTE) * 2) +
-                                  (sizeof(WCHAR) * 13),
-
-        CDLGITEMS_OFFSET = (sizeof(WORD) * 2) +
-                           (sizeof(DWORD) * 3),
-
-        /*
-         * The windowClass will be evaluated during object construction.
-         * The title must always contain at least a NULL character.
-         */
-        DLGITEMTEMPLATEEX_BASE_SIZE = (sizeof(DWORD) * 3) +
-                                      (sizeof(SHORT) * 4) +
-                                      (sizeof(DWORD) * 1) +
-                                      (sizeof(WCHAR) * 0) +
-                                      (sizeof(WCHAR) * 1) +
-                                      (sizeof(WORD) * 1),
-    };
-}
 
 /*
  * These classes provide type erasure on callback functions to simplify
@@ -199,6 +114,57 @@ private:
     std::function<bool(WORD)> callback;
 };
 
+namespace
+{
+    enum : int
+    {
+        IDC_DLGBASE_INTERNAL_MENU_ANCHOR = -1,
+    };
+
+    static constexpr WCHAR typeface[] = L"MS Shell Dlg";
+
+    /*
+     * On MSDN these are declared as 1 struct, but, since the title-member is of variadic
+     * length it's declared as 2 structs here.
+     */
+#pragma pack(push, 1)
+    struct DLGTEMPLATEEX_1
+    {
+        WORD dlgVer;
+        WORD signature;
+        DWORD helpID;
+        DWORD exStyle;
+        DWORD style;
+        WORD cDlgItems;
+        short x;
+        short y;
+        short cx;
+        short cy;
+        WCHAR menu;
+        WCHAR windowClass;
+        WCHAR title;
+    };
+    struct DLGTEMPLATEEX_2
+    {
+        WORD      pointsize;
+        WORD      weight;
+        BYTE      italic;
+        BYTE      charset;
+        WCHAR     typeface[ARRAYSIZE(typeface)];
+    };
+    /*
+     * Hacky... But avoids weird magic
+     * -- Warepire
+     */
+    struct DLGITEMTEMPLATEEX_MINIMAL
+    {
+        DWORD reserved;
+        DWORD exStyle;
+        DWORD style;
+    };
+#pragma pack(pop)
+}
+
 std::map<HWND, DlgBase*> DlgBase::ms_hwnd_dlgbase_map;
 
 DWORD DlgBase::ms_ref_count = 0;
@@ -208,15 +174,20 @@ namespace
     HINSTANCE gs_instance;
 }
 
-DlgBase::DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h, DlgType type) :
+/*
+ * wmemcpy is used over wcscpy, swprintf etc in this code. This is due to these methods end up
+ * corrupting the DLGTEMPLATE structures causing Windows to read memory continously until it
+ * reaches a memory access violation exception (and thus the program crashes).
+ * -- Warepire
+ */
+DlgBase::DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h) :
     m_handle(nullptr),
     m_mode(DlgMode::INDIRECT),
     m_return_code_set(false),
-    m_return_code(0)
+    m_return_code(0),
+    m_window(AlignValueTo<sizeof(DWORD)>(sizeof(DLGTEMPLATEEX_1) + sizeof(DLGTEMPLATEEX_2) + (caption.size() * sizeof(WCHAR)))),
+    m_next_id(0)
 {
-    DWORD iterator = 0;
-    std::vector<BYTE>::size_type struct_size = DLGTEMPLATEEX_BASE_SIZE;
-
     /*
      * A bit hacky to avoid a special init function just to pass the isntance to us.
      * -- Warepire
@@ -231,98 +202,35 @@ DlgBase::DlgBase(const std::wstring& caption, SHORT x, SHORT y, SHORT w, SHORT h
     m_message_callbacks.emplace(WM_DESTROY, std::make_unique<Callback0>(std::bind(&DlgBase::DestroyCallback, this)));
     m_message_callbacks.emplace(WM_NCDESTROY, std::make_unique<Callback0>(std::bind(&DlgBase::NcDestroyCallback, this)));
 
-    /*
-     * Add the size of the caption
-     */
-    struct_size += (sizeof(WCHAR) * caption.size());
+    auto window_1 = reinterpret_cast<DLGTEMPLATEEX_1*>(m_window.data());
+    window_1->dlgVer = 0x0001;
+    window_1->signature = 0xFFFF;
+    window_1->style = DS_SETFONT | DS_FIXEDSYS | DS_MODALFRAME | WS_POPUP |
+                      WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
-    /*
-     * Make sure the size is DWORD aligned to put the first child objects at the right offset.
-     */
-    struct_size = AlignValueTo<sizeof(DWORD)>(struct_size);
-
-    m_window.resize(struct_size);
-
-    /*
-     * Required values
-     */
-    *reinterpret_cast<LPWORD>(&(m_window[iterator])) = 0x0001;
-    iterator += sizeof(WORD);
-    *reinterpret_cast<LPWORD>(&(m_window[iterator])) = 0xFFFF;
-    iterator += sizeof(WORD);
-
-    /*
-     * Leave HelpID and exStyle alone
-     */
-    iterator += (sizeof(DWORD) * 2);
-
-    *reinterpret_cast<LPDWORD>(&(m_window[iterator])) = DS_SETFONT | DS_FIXEDSYS;
-    switch (type)
-    {
-    case DlgType::NORMAL:
-        *reinterpret_cast<LPDWORD>(&(m_window[iterator])) |= DS_MODALFRAME | WS_POPUP |
-                                                             WS_CAPTION | WS_SYSMENU |
-                                                             WS_MINIMIZEBOX;
-        break;
-    case DlgType::TAB_PAGE:
-        *reinterpret_cast<LPDWORD>(&(m_window[iterator])) |= WS_CHILD | WS_CLIPSIBLINGS |
-                                                             WS_VISIBLE;
-        break;
-    default:
-        break;
-    }
-    iterator += sizeof(DWORD);
-
-    /*
-     * We'll set cDlgItems incrementally with the children.
-     */
-    iterator += sizeof(WORD);
-
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = x;
-    iterator += sizeof(SHORT);
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = y;
-    iterator += sizeof(SHORT);
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = w;
-    iterator += sizeof(SHORT);
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = h;
-    iterator += sizeof(SHORT);
-
-    /*
-     * Leave menu and windowClass alone
-     */
-    iterator += (sizeof(WORD) * 2);
+    window_1->x = x;
+    window_1->y = y;
+    window_1->cx = w;
+    window_1->cy = h;
 
     if (caption.empty() == false)
     {
-        wmemcpy(reinterpret_cast<LPWSTR>(&(m_window[iterator])),
-                caption.c_str(),
-                caption.size());
-        iterator += (sizeof(WCHAR) * caption.size());
+        wmemcpy(&window_1->title, caption.data(), caption.size());
     }
-    iterator += sizeof(WCHAR);
 
-    /*
-     * pointsize 8
-     */
-    *reinterpret_cast<LPWORD>(&(m_window[iterator])) = 0x0008;
-    iterator += sizeof(WORD);
+    auto window_2 = reinterpret_cast<DLGTEMPLATEEX_2*>(m_window.data() + sizeof(DLGTEMPLATEEX_1) + (caption.size() * sizeof(WCHAR)));
 
-    *reinterpret_cast<LPWORD>(&(m_window[iterator])) = static_cast<WORD>(FW_NORMAL);
-    iterator += sizeof(WORD);
-    m_window[iterator] = static_cast<BYTE>(FALSE);
-    iterator += sizeof(BYTE);
-    m_window[iterator] = 0x01;
-    iterator += sizeof(BYTE);
-
-    wmemcpy(reinterpret_cast<LPWSTR>(&(m_window[iterator])),
-            L"MS Shell Dlg",
-            ARRAYSIZE(L"MS Shell Dlg") - 1);
+    window_2->pointsize = 0x0008;
+    window_2->weight = FW_NORMAL;
+    window_2->italic = FALSE;
+    window_2->charset = 0x01;
+    wmemcpy(window_2->typeface, typeface, ARRAYSIZE(typeface) - 1);
 
     /*
      * Hack to resize windows when adding menus.
      * -- Warepire
      */
-    AddStaticText(L"", IDC_DLGBASE_INTERNAL_MENU_ANCHOR, 0, 0, 1, 1);
+    StaticText(L"", 0, 0, 1, 1, this);
 }
 
 DlgBase::~DlgBase()
@@ -330,198 +238,73 @@ DlgBase::~DlgBase()
     ms_ref_count--;
 }
 
-void DlgBase::AddPushButton(const std::wstring& caption,
-                            DWORD id,
-                            SHORT x, SHORT y,
-                            SHORT w, SHORT h,
-                            bool disable,
-                            bool default_choice)
+//void DlgBase::AddUpDownControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h)
+//{
+//    AddObject(0, WS_TABSTOP, L"msctls_updown32", L"", id, x, y, w, h);
+//}
+
+//void DlgBase::AddDropDownList(DWORD id, SHORT x, SHORT y, SHORT w, SHORT drop_distance)
+//{
+//    AddObject(0,
+//              WS_GROUP | WS_VSCROLL | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS,
+//              L"\xFFFF\x0085",
+//              L"",
+//              id,
+//              x, y,
+//              w,
+//              drop_distance);
+//}
+
+//void DlgBase::AddListView(DWORD id,
+//                          SHORT x, SHORT y,
+//                          SHORT w, SHORT h,
+//                          bool single_selection, bool owner_data)
+//{
+//    DWORD style = LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS;
+//    style |= (single_selection ? LVS_SINGLESEL : 0);
+//    style |= (owner_data ? LVS_OWNERDATA : 0);
+//    AddObject(0,
+//              WS_GROUP | WS_BORDER | WS_TABSTOP | style,
+//              L"SysListView32",
+//              L"",
+//              id,
+//              x, y,
+//              w, h);
+//}
+
+//void DlgBase::AddIPEditControl(DWORD id, SHORT x, SHORT y)
+//{
+//    AddObject(0, WS_GROUP | WS_TABSTOP, L"SysIPAddress32", L"", id, x, y, 100, 15);
+
+
+DWORD DlgBase::GetNextID()
 {
-    assert(!(disable && default_choice));
-    DWORD style = (disable ? WS_DISABLED : 0);
-    style |= (default_choice ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
-    AddObject(0,
-              WS_GROUP | WS_TABSTOP | style,
-              L"\xFFFF\x0080",
-              caption,
-              id,
-              x, y,
-              w, h);
+    return m_next_id++;
 }
 
-void DlgBase::AddCheckbox(const std::wstring& caption,
-                          DWORD id,
-                          SHORT x, SHORT y,
-                          SHORT w, SHORT h,
-                          bool right_hand)
+SIZE_T DlgBase::AddObject(const std::vector<BYTE>& object)
 {
-    AddObject(0,
-              WS_GROUP | WS_TABSTOP | BS_AUTOCHECKBOX | (right_hand ? BS_RIGHTBUTTON : 0),
-              L"\xFFFF\x0080",
-              caption,
-              id,
-              x, y,
-              w, h);
-}
+    SIZE_T old_size = m_window.size();
+    SIZE_T new_size = AlignValueTo<sizeof(DWORD)>(old_size + object.size());
 
-void DlgBase::AddRadioButton(const std::wstring& caption,
-                             DWORD id,
-                             SHORT x, SHORT y,
-                             SHORT w, SHORT h,
-                             bool right_hand,
-                             bool group_with_prev)
-{
-    DWORD style = (group_with_prev ? 0 : WS_GROUP) | (right_hand ? BS_RIGHTBUTTON : 0);
-    AddObject(0,
-              WS_TABSTOP | BS_AUTORADIOBUTTON | style,
-              L"\xFFFF\x0080",
-              caption,
-              id,
-              x, y,
-              w, h);
-}
-
-void DlgBase::AddUpDownControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h)
-{
-    AddObject(0, WS_TABSTOP, L"msctls_updown32", L"", id, x, y, w, h);
-}
-
-void DlgBase::AddEditControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h, bool disabled, bool multi_line)
-{
-    DWORD style = (multi_line ? WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN : 0);
-    style |= (disabled ? ES_READONLY : WS_TABSTOP);
-
-    AddObject(0,
-              WS_GROUP | WS_BORDER | ES_AUTOHSCROLL | style,
-              L"\xFFFF\x0081",
-              L"",
-              id,
-              x, y,
-              w, h);
-}
-
-void DlgBase::AddStaticText(const std::wstring& caption, DWORD id,
-                            SHORT x, SHORT y, SHORT w, SHORT h)
-{
-    AddObject(0, SS_LEFT, L"\xFFFF\x0082", caption, id, x, y, w, h);
-}
-
-void DlgBase::AddStaticPanel(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h)
-{
-    AddObject(0, SS_GRAYRECT, L"\xFFFF\x0082", L"", id, x, y, w, h);
-}
-
-void DlgBase::AddGroupBox(const std::wstring& caption, DWORD id,
-                          SHORT x, SHORT y, SHORT w, SHORT h)
-{
-    AddObject(WS_EX_TRANSPARENT, BS_GROUPBOX, L"\xFFFF\x0080", caption, id, x, y, w, h);
-}
-
-void DlgBase::AddDropDownList(DWORD id, SHORT x, SHORT y, SHORT w, SHORT drop_distance)
-{
-    AddObject(0,
-              WS_GROUP | WS_VSCROLL | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS,
-              L"\xFFFF\x0085",
-              L"",
-              id,
-              x, y,
-              w,
-              drop_distance);
-}
-
-void DlgBase::AddListView(DWORD id,
-                          SHORT x, SHORT y,
-                          SHORT w, SHORT h,
-                          bool single_selection, bool owner_data)
-{
-    DWORD style = LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS;
-    style |= (single_selection ? LVS_SINGLESEL : 0);
-    style |= (owner_data ? LVS_OWNERDATA : 0);
-    AddObject(0,
-              WS_GROUP | WS_BORDER | WS_TABSTOP | style,
-              L"SysListView32",
-              L"",
-              id,
-              x, y,
-              w, h);
-}
-
-void DlgBase::AddIPEditControl(DWORD id, SHORT x, SHORT y)
-{
-    AddObject(0, WS_GROUP | WS_TABSTOP, L"SysIPAddress32", L"", id, x, y, 100, 15);
-}
-
-void DlgBase::AddTabControl(DWORD id, SHORT x, SHORT y, SHORT w, SHORT h)
-{
-    AddObject(0, WS_GROUP, L"SysTabControl32", L"", id, x, y, w, h);
-}
-
-void DlgBase::AddObject(DWORD ex_style, DWORD style,
-                        const std::wstring& window_class,
-                        const std::wstring& caption,
-                        DWORD id,
-                        SHORT x, SHORT y,
-                        SHORT w, SHORT h)
-{
-    DWORD iterator = m_window.size();
-    std::vector<BYTE>::size_type new_size = DLGITEMTEMPLATEEX_BASE_SIZE;
-    new_size += (sizeof(WCHAR) * window_class.size());
-    /*
-     * Non-atomic class, also add space for the NULL.
-     */
-    if (window_class[0] != L'\xFFFF')
+    m_window.reserve(new_size);
+    m_window.insert(m_window.end(), object.begin(), object.end());
+    while (new_size > m_window.size())
     {
-        new_size += sizeof(WCHAR);
+        m_window.emplace_back(0);
     }
 
-    new_size += (sizeof(WCHAR) * caption.size());
-    new_size += iterator;
+    auto window = reinterpret_cast<DLGTEMPLATEEX_1*>(m_window.data());
+    window->cDlgItems++;
 
-    new_size = AlignValueTo<sizeof(DWORD)>(new_size);
+    return old_size;
+}
 
-    m_window.resize(new_size);
-
-    /*
-     * Leave helpID alone
-     */
-    iterator += sizeof(DWORD);
-
-    *reinterpret_cast<LPDWORD>(&(m_window[iterator])) = ex_style;
-    iterator += sizeof(DWORD);
-    *reinterpret_cast<LPDWORD>(&(m_window[iterator])) = WS_CHILD | WS_VISIBLE | style;
-    iterator += sizeof(DWORD);
-
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = x;
-    iterator += sizeof(SHORT);
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = y;
-    iterator += sizeof(SHORT);
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = w;
-    iterator += sizeof(SHORT);
-    *reinterpret_cast<PSHORT>(&(m_window[iterator])) = h;
-    iterator += sizeof(SHORT);
-
-    *reinterpret_cast<LPDWORD>(&(m_window[iterator])) = id;
-    iterator += sizeof(DWORD);
-
-    wmemcpy(reinterpret_cast<LPWSTR>(&(m_window[iterator])),
-            window_class.c_str(),
-            window_class.size());
-    iterator += (sizeof(WCHAR) * window_class.size());
-    if (window_class[0] != L'\xFFFF')
-    {
-        iterator += sizeof(WCHAR);
-    }
-
-    if (caption.empty() == false)
-    {
-        wmemcpy(reinterpret_cast<LPWSTR>(&(m_window[iterator])),
-                caption.c_str(),
-                caption.size());
-        iterator += (sizeof(WCHAR) * caption.size());
-    }
-    iterator += sizeof(WCHAR);
-
-    *reinterpret_cast<LPWORD>(&(m_window[CDLGITEMS_OFFSET])) += 1;
+void DlgBase::SetNewStyle(SIZE_T obj_offset, DWORD ex_style, DWORD style)
+{
+    auto obj = reinterpret_cast<DLGITEMTEMPLATEEX_MINIMAL*>(m_window.data() + obj_offset);
+    obj->exStyle = ex_style;
+    obj->style = style;
 }
 
 INT_PTR DlgBase::SpawnDialogBox(const DlgBase* parent, const DlgMode mode)
@@ -639,31 +422,13 @@ BOOL DlgBase::DestroyDialog()
     return FALSE;
 }
 
-bool DlgBase::AddTabPageToTabControl(HWND tab_control, unsigned int pos, LPTCITEMW data)
-{
-    if (m_handle == nullptr)
-    {
-        return false;
-    }
-    /*
-     * TODO: More error handling
-     * -- Warepire
-     */
-    ::SendMessageW(tab_control, TCM_INSERTITEM, pos, reinterpret_cast<LPARAM>(data));
-    /*
-     * Re-position the window to fit within the tab space.
-     */
-    RECT new_pos;
-    ::GetClientRect(m_handle, &new_pos);
-    ::SendMessageW(tab_control, TCM_ADJUSTRECT, FALSE, reinterpret_cast<LPARAM>(&new_pos));
-    ::SetWindowPos(m_handle, NULL, new_pos.left, new_pos.top, NULL, NULL, SWP_NOSIZE);
-
-    return true;
-}
-
 bool DlgBase::SetMenu(const Menu* menu) const
 {
-    HWND anchor_hwnd = GetDlgItem(m_handle, IDC_DLGBASE_INTERNAL_MENU_ANCHOR);
+    /*
+     * Super-hacky: Since this little label is added first, it has ID 0.
+     * -- Warepire
+     */
+    HWND anchor_hwnd = GetDlgItem(m_handle, 0);
     RECT old_rect = {};
     RECT new_rect = {};
     GetWindowRect(anchor_hwnd, &old_rect);
@@ -699,7 +464,7 @@ void DlgBase::RegisterCloseEventCallback(std::function<bool()> cb)
     m_message_callbacks.emplace(WM_CLOSE, std::make_unique<Callback0>(cb));
 }
 
-void DlgBase::RegisterControlEventCallback(DWORD id, std::function<bool(WORD)> cb)
+void DlgBase::RegisterWmControlCallback(DWORD id, std::function<bool(WORD)> cb)
 {
     m_wm_command_callbacks.emplace(id, std::make_unique<CallbackWmCommand>(cb));
 }

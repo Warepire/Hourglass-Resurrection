@@ -42,6 +42,9 @@
     <Filter Include="Source Files\GUI\Utils">
       <UniqueIdentifier>{535eb9f0-3ddc-415d-9bf7-03dd44f7039c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GUI\Objects">
+      <UniqueIdentifier>{3163ab1d-3a5f-4eff-8cc2-8c68d1c84935}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomDLGs.cpp">
@@ -154,6 +157,24 @@
     </ClCompile>
     <ClCompile Include="GUI\MainWindow.cpp">
       <Filter>Source Files\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\PushButton.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\RadioButton.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\CheckboxButton.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\EditControl.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\StaticText.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\GroupBox.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -303,6 +324,30 @@
     </ClInclude>
     <ClInclude Include="wintaser.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Core\ObjBase.h">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\PushButton.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Core\WindowClasses.h">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\RadioButton.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\CheckboxButton.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\EditControl.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\StaticText.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\GroupBox.h">
+      <Filter>Source Files\GUI\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

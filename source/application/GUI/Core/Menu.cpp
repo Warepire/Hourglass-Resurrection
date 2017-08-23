@@ -66,20 +66,20 @@ Menu::~Menu()
     }
 }
 
-void Menu::BeginMenuCategory(const std::wstring& name, DWORD id, bool enabled)
+void Menu::BeginMenuCategory(const std::wstring& name, const std::wstring& disable_reason, DWORD id, bool enabled)
 {
 
     DWORD state = (enabled ? MFS_ENABLED : MFS_DISABLED);
     m_menu_depth++;
-    AddMenuObject(name, id, MFT_STRING, state, 0x01);
+    AddMenuObject(name + (!enabled ? L"( " + disable_reason + L')' : L""), id, MFT_STRING, state, 0x01);
 }
 
-void Menu::BeginSubMenu(const std::wstring& name, DWORD id, bool enabled)
+void Menu::BeginSubMenu(const std::wstring& name, const std::wstring& disable_reason, DWORD id, bool enabled)
 {
     /*
      * It's the same code-segment, just call the Category function instead
      */
-    BeginMenuCategory(name, id, enabled);
+    BeginMenuCategory(name, disable_reason, id, enabled);
 }
 
 void Menu::AddMenuItem(const std::wstring& name,
@@ -120,7 +120,7 @@ void Menu::EndSubMenu()
     /*
      * Having mismatched depth is a bug, and LoadMenuIndirectW will only tell you 0xD (Invalid data)
      */
-    assert(m_menu_depth > 1);
+    assert(m_menu_depth + 1 == m_depth_offsets.size());
     m_menu_depth--;
 }
 
@@ -166,7 +166,6 @@ void Menu::AddMenuObject(const std::wstring& name, DWORD id, DWORD type, DWORD s
 bool Menu::AttachMenu(const DlgBase* dlg)
 {
     m_loaded_menu = LoadMenuIndirectW(reinterpret_cast<LPMENUTEMPLATEW>(m_menu.data()));
-    // Fails here, 0xD, invalid data.
     DWORD error = GetLastError();
     if (m_loaded_menu == nullptr)
     {
