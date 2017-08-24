@@ -126,6 +126,7 @@ private:
     static std::map<HWND, DlgBase*> ms_hwnd_dlgbase_map;
 
     friend class Menu;
+    friend class MenuItemBase;
 
     template<std::size_t>
     friend class ObjBase;
