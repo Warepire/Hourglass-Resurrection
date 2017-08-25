@@ -20,8 +20,7 @@ class SubMenu : public MenuItemBase
 public:
     SubMenu(const std::wstring& title, MenuBase* parent, DlgBase* dlg);
 
-    SubMenu& SetEnabled();
-    SubMenu& SetDisabled();
+    SubMenu& SetEnabled(bool enabled);
 
     SubMenu& ChangeTitle(const std::wstring& title);
 };

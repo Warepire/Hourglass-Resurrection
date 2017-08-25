@@ -445,7 +445,7 @@ bool DlgBase::SetMenuBar(const MenuBar* bar)
         m_current_menu = nullptr;
     }
 
-    AppendMenuItems(&menu, bar);
+    AppendMenuItems(&menu, bar->m_data);
 
     m_current_menu = LoadMenuIndirectW(reinterpret_cast<LPMENUTEMPLATEW>(menu.data()));
 
@@ -519,20 +519,20 @@ bool DlgBase::NcDestroyCallback()
     return true;
 }
 
-void DlgBase::AppendMenuItems(std::vector<BYTE>* menu, const MenuBase* item)
+void DlgBase::AppendMenuItems(std::vector<BYTE>* menu, const MenuData* item)
 {
     auto it = item->m_children.begin();
     while (it != item->m_children.end())
     {
         std::size_t old_size = menu->size();
-        std::size_t new_size = AlignValueTo<sizeof(DWORD)>(old_size + item->m_menu.size());
+        std::size_t new_size = AlignValueTo<sizeof(DWORD)>(old_size + it->get()->m_menu.size());
         menu->reserve(new_size);
-        menu->insert(menu->end(), item->m_menu.begin(), item->m_menu.end());
+        menu->insert(menu->end(), it->get()->m_menu.begin(), it->get()->m_menu.end());
         while (new_size > menu->size())
         {
             menu->emplace_back(0);
         }
-        AppendMenuItems(menu, *it);
+        AppendMenuItems(menu, it->get());
         if ((++it) == item->m_children.end())
         {
             auto last = reinterpret_cast<MENUEX_TEMPLATE_ITEM_MINIMAL*>(menu->data() + old_size);

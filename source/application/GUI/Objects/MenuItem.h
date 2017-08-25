@@ -21,8 +21,7 @@ class MenuItem : public MenuItemBase
 public:
     MenuItem(const std::wstring& title, const std::wstring& shortcut, MenuItemBase* parent, DlgBase* dlg);
 
-    MenuItem& SetEnabled();
-    MenuItem& SetDisabled();
+    MenuItem& SetEnabled(bool enabled);
 
     MenuItem& ChangeTitle(const std::wstring& title);
     MenuItem& ChangeShortcut(const std::wstring& shortcut);

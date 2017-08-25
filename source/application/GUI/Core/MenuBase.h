@@ -10,15 +10,19 @@
 #include <Windows.h>
 
 #include <cstddef>
+#include <memory>
 #include <vector>
+
+struct MenuData
+{
+    std::vector<BYTE> m_menu;
+    std::vector<std::unique_ptr<MenuData>> m_children;
+};
 
 class MenuBase
 {
 protected:
-    MenuBase(std::size_t size);
-
-    std::vector<BYTE> m_menu;
-    std::vector<MenuBase*> m_children;
+    MenuData* m_data;
 
     friend class DlgBase;
     friend class MenuItemBase;

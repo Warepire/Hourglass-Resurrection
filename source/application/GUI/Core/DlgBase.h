@@ -59,6 +59,7 @@
 
 class CallbackBase;
 class MenuBar;
+struct MenuData;
 
 class DlgBase
 {
@@ -112,7 +113,7 @@ private:
     bool m_return_code_set;
     INT_PTR m_return_code;
 
-    void AppendMenuItems(std::vector<BYTE>* menu, const MenuBase* item);
+    void AppendMenuItems(std::vector<BYTE>* menu, const MenuData* item);
     HMENU m_current_menu;
 
     DWORD m_next_id;

@@ -13,6 +13,7 @@
 #include "../wintaser.h"
 
 #include "application/GUI/Core/DlgBase.h"
+#include "application/GUI/Objects/CheckableMenuItem.h"
 #include "application/GUI/Objects/CheckboxButton.h"
 #include "application/GUI/Objects/EditControl.h"
 #include "application/GUI/Objects/GroupBox.h"
@@ -283,60 +284,60 @@ void MainWindow::CreateMenu()
     }
     bool on = true;
 
-    SubMenu(L"&File", &m_menu, this);
-    m_menu.BeginMenuCategory(L"&File", L"", IDC_STATIC, true);
+    SubMenu file(L"&File", &m_menu, this);
 
     on = !exe_filename_only.empty() && !started;
-    m_menu.AddMenuItem(std::wstring(L"&Open Executable...") + (on ? L"(now open: \"" : L"") + (on ? exe_filename_only : L"") + (on ? L"\")" : L""),
-                       L"Ctrl+O", L"Can't change while running", ID_FILES_OPENEXE, !started, false);
+    MenuItem(std::wstring(L"&Open Executable...") + (on ? L"(now open: \"" : L"") + (on ? exe_filename_only : L"") + (on ? L"\")" : L""),
+                       L"Ctrl+O", /*L"Can't change while running", */&file, this).SetEnabled(!started);
 
     on = !movie_filename_only.empty() && !started;
-    m_menu.AddMenuItem(std::wstring(L"&Open Movie...") + (on ? L"(now open: \"" : L"") + (on ? movie_filename_only : L"") + (on ? L"\")" : L""),
-                       L"Ctrl+M", L"Can't change while running", ID_FILES_OPENMOV, !started, false);
+    MenuItem(std::wstring(L"&Open Movie...") + (on ? L"(now open: \"" : L"") + (on ? movie_filename_only : L"") + (on ? L"\")" : L""),
+                       L"Ctrl+M", /*L"Can't change while running", */&file, this).SetEnabled(!started);
 
-    m_menu.AddMenuItemSeparator();
+    MenuSeparator(&file, this);
 
-    m_menu.AddMenuItem(L"&Play Movie", L"Ctrl+P", !movie_filename_only.empty() ? L"No movie opened" : L"Already playing", ID_FILES_PLAYMOV, movie_filename_only.empty() || started, false);
-    m_menu.AddMenuItem(L"&Watch From Beginning", L"", L"Movie is not playing", ID_FILES_WATCHMOV, started && localTASflags.playback, false);
+    MenuItem(L"&Play Movie", L"Ctrl+P", /*!movie_filename_only.empty() ? L"No movie opened" : L"Already playing", */&file, this).SetEnabled(movie_filename_only.empty() || started);
+    MenuItem(L"&Watch From Beginning", L"", /*L"Movie is not playing", */&file, this).SetEnabled(started && localTASflags.playback);
 
-    m_menu.AddMenuItemSeparator();
+    MenuSeparator(&file, this);
 
-    m_menu.AddMenuItem(L"&Record New Movie...", L"Ctrl+R", started ? L"Must stop running first" : L"Must open an executable first", ID_FILES_RECORDMOV, !started && exeFileExists, false);
-    m_menu.AddMenuItem(L"Backup Movie to File...", L"", L"Must be recording", ID_FILES_BACKUPMOVIE, started && !localTASflags.playback, false);
-    m_menu.AddMenuItem(L"Resume Recording from Now", L"", L"Movie must be playing", ID_FILES_RESUMERECORDING, started && localTASflags.playback && !finished, false);
+    MenuItem(L"&Record New Movie...", L"Ctrl+R", /*started ? L"Must stop running first" : L"Must open an executable first", */&file, this).SetEnabled(!started && exeFileExists);
+    MenuItem(L"Backup Movie to File...", L"", /*L"Must be recording", */&file, this).SetEnabled(started && !localTASflags.playback);
+    MenuItem(L"Resume Recording from Now", L"", /*L"Movie must be playing", */&file, this).SetEnabled(started && localTASflags.playback && !finished);
 
-    m_menu.AddMenuItemSeparator();
+    MenuSeparator(&file, this);
 
-    m_menu.AddMenuItem(L"Save Config As...", L"", L"", ID_FILES_SAVECONFIGAS, true, false);
-    m_menu.AddMenuItem(L"Load Config From...", L"", L"", ID_FILES_LOADCONFIGFROM, true, false);
+    MenuItem(L"Save Config As...", L"", &file, this);
+    MenuItem(L"Load Config From...", L"", &file, this);
 
-    m_menu.AddMenuItemSeparator();
+    MenuSeparator(&file, this);
 
-    m_menu.AddMenuItem(L"Stop Running", L"", L"Already stopped", ID_FILES_STOP_RELAY, started, false);
+    MenuItem(L"Stop Running", L"", /*L"Already stopped", */&file, this).SetEnabled(started);
 
-    m_menu.AddMenuItemSeparator();
+    MenuSeparator(&file, this);
 
-    m_menu.AddMenuItem(L"E&xit", L"Alt+F4", L"", ID_FILES_QUIT, true, true);
-    m_menu.EndMenuCategory();
+    MenuItem(L"E&xit", L"Alt+F4", &file, this);
+    
 
-    m_menu.BeginMenuCategory(L"&Graphics", L"", IDC_STATIC, true);
+    SubMenu graphics(L"&Graphics", &m_menu, this);
 
-    m_menu.AddCheckableMenuItem(L"Allow &Fullscreen / Display Mode Changes", L"", L"Can't change while running", ID_GRAPHICS_ALLOWFULLSCREEN, !started, !localTASflags.forceWindowed);
+    CheckableMenuItem(L"Allow &Fullscreen / Display Mode Changes", L"", /*L"Can't change while running", */&graphics, this).SetEnabled(!started).SetChecked(!localTASflags.forceWindowed);
 
-    m_menu.AddMenuItemSeparator();
+    MenuSeparator(&graphics, this);
 
-    m_menu.AddCheckableMenuItem(L"&Allow Hardware Acceleration", L"", L"Can't change while running", ID_GRAPHICS_FORCESOFTWARE, !started, !localTASflags.forceSoftware);
+    CheckableMenuItem(L"&Allow Hardware Acceleration", L"", /*L"Can't change while running", */&graphics, this).SetEnabled(!started).SetChecked(!localTASflags.forceSoftware);
 
-    //m_menu.BeginSubMenu(L"Surface &Memory", started ? L"Can't change while running" : L"Hardware acceleration must be enabled", IDC_STATIC, !localTASflags.forceSoftware && !started);
+    SubMenu surface_memory(L"Surface &Memory", /*started ? L"Can't change while running" : L"Hardware acceleration must be enabled", */&graphics, this);
+    surface_memory.SetEnabled(!localTASflags.forceSoftware && !started);
 
-    m_menu.AddCheckableMenuItem(L"&Let Game Choose", L"", L"", ID_GRAPHICS_MEM_DONTCARE, true, localTASflags.forceSurfaceMemory == 0);
-    m_menu.AddCheckableMenuItem(L"&System Memory               (Slow Draw, Fast Read)", L"", L"", ID_GRAPHICS_MEM_SYSTEM, true, localTASflags.forceSurfaceMemory == 1);
-    m_menu.AddCheckableMenuItem(L"&Non-Local Video Memory (Varies)", L"", L"", ID_GRAPHICS_MEM_NONLOCAL, true, localTASflags.forceSurfaceMemory == 2);
-    m_menu.AddCheckableMenuItem(L"Local &Video Memory        (Fast Draw, Slow Read)", L"", L"", ID_GRAPHICS_MEM_LOCAL, true, localTASflags.forceSurfaceMemory == 3);
+    CheckableMenuItem(L"&Let Game Choose", L"", &surface_memory, this).SetChecked(localTASflags.forceSurfaceMemory == 0);
+    CheckableMenuItem(L"&System Memory               (Slow Draw, Fast Read)", L"", &surface_memory, this).SetChecked(localTASflags.forceSurfaceMemory == 1);
+    CheckableMenuItem(L"&Non-Local Video Memory (Varies)", L"", &surface_memory, this).SetChecked(localTASflags.forceSurfaceMemory == 2);
+    CheckableMenuItem(L"Local &Video Memory        (Fast Draw, Slow Read)", L"", &surface_memory, this).SetChecked(localTASflags.forceSurfaceMemory == 3);
 
     //m_menu.EndSubMenu();
 
-    m_menu.EndMenuCategory();
+    //m_menu.EndMenuCategory();
 
 
 //        HelperFuncInsertMenu(MainMenu, i++, Flags, Sound, L"", L"&Sound", 0);

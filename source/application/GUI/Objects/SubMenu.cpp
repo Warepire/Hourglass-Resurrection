@@ -20,15 +20,9 @@ SubMenu::SubMenu(const std::wstring& title, MenuBase* parent, DlgBase* dlg) :
 {
 }
 
-SubMenu& SubMenu::SetEnabled()
+SubMenu& SubMenu::SetEnabled(bool enabled)
 {
-    SetUnsetStyleBits(MFS_DISABLED, SetBits::Unset);
-    return *this;
-}
-
-SubMenu& SubMenu::SetDisabled()
-{
-    SetUnsetStyleBits(MFS_DISABLED, SetBits::Set);
+    SetUnsetStyleBits(MFS_DISABLED, enabled ? SetBits::Unset : SetBits::Set);
     return *this;
 }
 

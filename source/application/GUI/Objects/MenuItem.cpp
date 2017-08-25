@@ -21,15 +21,9 @@ MenuItem::MenuItem(const std::wstring& title, const std::wstring& shortcut, Menu
 {
 }
 
-MenuItem& MenuItem::SetEnabled()
+MenuItem& MenuItem::SetEnabled(bool enable)
 {
-    SetUnsetStyleBits(MFS_DISABLED, SetBits::Unset);
-    return *this;
-}
-
-MenuItem& MenuItem::SetDisabled()
-{
-    SetUnsetStyleBits(MFS_DISABLED, SetBits::Set);
+    SetUnsetStyleBits(MFS_DISABLED, enable ? SetBits::Unset : SetBits::Set);
     return *this;
 }
 

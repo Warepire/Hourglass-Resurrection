@@ -21,27 +21,15 @@ CheckableMenuItem::CheckableMenuItem(const std::wstring& title, const std::wstri
 {
 }
 
-CheckableMenuItem& CheckableMenuItem::SetEnabled()
+CheckableMenuItem& CheckableMenuItem::SetEnabled(bool enabled)
 {
-    SetUnsetStyleBits(MFS_DISABLED, SetBits::Unset);
+    SetUnsetStyleBits(MFS_DISABLED, enabled ? SetBits::Unset : SetBits::Set);
     return *this;
 }
 
-CheckableMenuItem& CheckableMenuItem::SetDisabled()
+CheckableMenuItem& CheckableMenuItem::SetChecked(bool checked)
 {
-    SetUnsetStyleBits(MFS_DISABLED, SetBits::Set);
-    return *this;
-}
-
-CheckableMenuItem& CheckableMenuItem::SetChecked()
-{
-    SetUnsetStyleBits(MFS_CHECKED, SetBits::Set);
-    return *this;
-}
-
-CheckableMenuItem& CheckableMenuItem::SetUnchecked()
-{
-    SetUnsetStyleBits(MFS_CHECKED, SetBits::Unset);
+    SetUnsetStyleBits(MFS_CHECKED, checked ? SetBits::Set : SetBits::Unset);
     return *this;
 }
 

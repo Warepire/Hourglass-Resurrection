@@ -149,9 +149,6 @@
     <ClCompile Include="GUI\Core\DlgBase.cpp">
       <Filter>Source Files\GUI\Core</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\Core\Menu.cpp">
-      <Filter>Source Files\GUI\Core</Filter>
-    </ClCompile>
     <ClCompile Include="GUI\Utils\ListViewUtils.cpp">
       <Filter>Source Files\GUI\Utils</Filter>
     </ClCompile>
@@ -174,6 +171,24 @@
       <Filter>Source Files\GUI\Objects</Filter>
     </ClCompile>
     <ClCompile Include="GUI\Objects\GroupBox.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Core\MenuItemBase.cpp">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\MenuItem.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\CheckableMenuItem.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\SubMenu.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\MenuSeparator.cpp">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Objects\MenuBar.cpp">
       <Filter>Source Files\GUI\Objects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -313,9 +328,6 @@
     <ClInclude Include="GUI\Core\DlgBase.h">
       <Filter>Source Files\GUI\Core</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\Core\Menu.h">
-      <Filter>Source Files\GUI\Core</Filter>
-    </ClInclude>
     <ClInclude Include="GUI\Utils\ListViewUtils.h">
       <Filter>Source Files\GUI\Utils</Filter>
     </ClInclude>
@@ -348,6 +360,27 @@
     </ClInclude>
     <ClInclude Include="GUI\Objects\GroupBox.h">
       <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Core\MenuItemBase.h">
+      <Filter>Source Files\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\MenuItem.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\CheckableMenuItem.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\SubMenu.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\MenuSeparator.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Objects\MenuBar.h">
+      <Filter>Source Files\GUI\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Core\MenuBase.h">
+      <Filter>Source Files\GUI\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

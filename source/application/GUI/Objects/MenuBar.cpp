@@ -14,6 +14,12 @@
 #include "MenuBar.h"
 
 MenuBar::MenuBar() :
-    MenuBase(0)
+    MenuBase()
 {
+    m_data = new MenuData;
+}
+
+MenuBar::~MenuBar()
+{
+    delete m_data;
 }

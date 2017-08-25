@@ -21,11 +21,9 @@ class CheckableMenuItem : public MenuItemBase
 public:
     CheckableMenuItem(const std::wstring& title, const std::wstring& shortcut, MenuItemBase* parent, DlgBase* dlg);
 
-    CheckableMenuItem& SetEnabled();
-    CheckableMenuItem& SetDisabled();
+    CheckableMenuItem& SetEnabled(bool enabled);
 
-    CheckableMenuItem& SetChecked();
-    CheckableMenuItem& SetUnchecked();
+    CheckableMenuItem& SetChecked(bool checked);
 
     CheckableMenuItem& ChangeTitle(const std::wstring& title);
     CheckableMenuItem& ChangeShortcut(const std::wstring& shortcut);

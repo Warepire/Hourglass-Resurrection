@@ -17,4 +17,5 @@ class MenuBar : public MenuBase
 {
 public:
     MenuBar();
+    ~MenuBar();
 };
