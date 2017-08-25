@@ -16,9 +16,8 @@
 
 #include "shared/Alignment.h"
 
+#include "../Objects/MenuBar.h"
 #include "../Objects/StaticText.h"
-
-#include "Menu.h"
 
 #include "DlgBase.h"
 
@@ -116,18 +115,13 @@ private:
 
 namespace
 {
-    enum : int
-    {
-        IDC_DLGBASE_INTERNAL_MENU_ANCHOR = -1,
-    };
-
     static constexpr WCHAR typeface[] = L"MS Shell Dlg";
 
+#pragma pack(push, 1)
     /*
      * On MSDN these are declared as 1 struct, but, since the title-member is of variadic
      * length it's declared as 2 structs here.
      */
-#pragma pack(push, 1)
     struct DLGTEMPLATEEX_1
     {
         WORD dlgVer;
@@ -161,6 +155,22 @@ namespace
         DWORD reserved;
         DWORD exStyle;
         DWORD style;
+    };
+
+    struct MENUEX_TEMPLATE_HEADER
+    {
+        WORD wVersion;
+        WORD wOffset;
+        DWORD dwHelpId;
+    };
+    /*
+     * Hacky... But avoids weird magic
+     * -- Warepire
+     */
+    struct MENUEX_TEMPLATE_ITEM_MINIMAL
+    {
+        DWORD reserved[3];
+        WORD bResInfo;
     };
 #pragma pack(pop)
 }
@@ -422,8 +432,28 @@ BOOL DlgBase::DestroyDialog()
     return FALSE;
 }
 
-bool DlgBase::SetMenu(const Menu* menu) const
+bool DlgBase::SetMenuBar(const MenuBar* bar)
 {
+    std::vector<BYTE> menu(sizeof(MENUEX_TEMPLATE_HEADER));
+    auto header = reinterpret_cast<MENUEX_TEMPLATE_HEADER*>(menu.data());
+    header->wVersion = 0x01;
+    header->wOffset = 0x04;
+
+    if (m_current_menu != nullptr)
+    {
+        DestroyMenu(m_current_menu);
+        m_current_menu = nullptr;
+    }
+
+    AppendMenuItems(&menu, bar);
+
+    m_current_menu = LoadMenuIndirectW(reinterpret_cast<LPMENUTEMPLATEW>(menu.data()));
+
+    if (m_current_menu == nullptr)
+    {
+        return false;
+    }
+
     /*
      * Super-hacky: Since this little label is added first, it has ID 0.
      * -- Warepire
@@ -433,7 +463,7 @@ bool DlgBase::SetMenu(const Menu* menu) const
     RECT new_rect = {};
     GetWindowRect(anchor_hwnd, &old_rect);
 
-    BOOL rv = ::SetMenu(m_handle, menu->m_loaded_menu);
+    BOOL rv = ::SetMenu(m_handle, m_current_menu);
 
     /*
      * If setting the menu pushed the window contents down,
@@ -487,6 +517,28 @@ bool DlgBase::NcDestroyCallback()
     m_message_callbacks.clear();
     m_wm_command_callbacks.clear();
     return true;
+}
+
+void DlgBase::AppendMenuItems(std::vector<BYTE>* menu, const MenuBase* item)
+{
+    auto it = item->m_children.begin();
+    while (it != item->m_children.end())
+    {
+        std::size_t old_size = menu->size();
+        std::size_t new_size = AlignValueTo<sizeof(DWORD)>(old_size + item->m_menu.size());
+        menu->reserve(new_size);
+        menu->insert(menu->end(), item->m_menu.begin(), item->m_menu.end());
+        while (new_size > menu->size())
+        {
+            menu->emplace_back(0);
+        }
+        AppendMenuItems(menu, *it);
+        if ((++it) == item->m_children.end())
+        {
+            auto last = reinterpret_cast<MENUEX_TEMPLATE_ITEM_MINIMAL*>(menu->data() + old_size);
+            last->bResInfo |= 0x80;
+        }
+    }
 }
 
 INT_PTR DlgBase::DlgCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)

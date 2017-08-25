@@ -9,8 +9,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include "application/GUI/Core/Menu.h"
 #include "application/GUI/Core/DlgBase.h"
+#include "application/GUI/Objects/MenuBar.h"
 
 class MainWindow : public DlgBase
 {
@@ -26,5 +26,5 @@ private:
     bool OnCreateEvent();
     bool OnCloseEvent();
 
-    Menu m_menu;
+    MenuBar m_menu;
 };

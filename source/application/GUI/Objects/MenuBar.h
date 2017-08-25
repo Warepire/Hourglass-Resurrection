@@ -11,17 +11,10 @@
 
 #include <string>
 
-#include "../Core/MenuItemBase.h"
+#include "../Core/MenuBase.h"
 
-class DlgBase;
-
-class SubMenu : public MenuItemBase
+class MenuBar : public MenuBase
 {
 public:
-    SubMenu(const std::wstring& title, MenuBase* parent, DlgBase* dlg);
-
-    SubMenu& SetEnabled();
-    SubMenu& SetDisabled();
-
-    SubMenu& ChangeTitle(const std::wstring& title);
+    MenuBar();
 };

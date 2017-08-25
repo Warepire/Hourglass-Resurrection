@@ -58,7 +58,7 @@
 #undef SendDlgItemMessage
 
 class CallbackBase;
-class Menu;
+class MenuBar;
 
 class DlgBase
 {
@@ -89,17 +89,17 @@ protected:
     void SetReturnCode(INT_PTR return_code);
     BOOL DestroyDialog();
 
+    void RegisterCreateEventCallback(std::function<bool()> cb);
+    void RegisterCloseEventCallback(std::function<bool()> cb);
+
+    bool SetMenuBar(const MenuBar* bar);
+
+private:
     DWORD GetNextID();
     SIZE_T AddObject(const std::vector<BYTE>& object);
     void SetNewStyle(SIZE_T obj_offset, DWORD ex_style, DWORD style);
 
-    void RegisterCreateEventCallback(std::function<bool()> cb);
-    void RegisterCloseEventCallback(std::function<bool()> cb);
-
     void RegisterWmControlCallback(DWORD id, std::function<bool(WORD)> cb);
-
-private:
-    bool SetMenu(const Menu* menu) const;
 
     bool DestroyCallback();
     bool NcDestroyCallback();
@@ -111,6 +111,9 @@ private:
     DlgMode m_mode;
     bool m_return_code_set;
     INT_PTR m_return_code;
+
+    void AppendMenuItems(std::vector<BYTE>* menu, const MenuBase* item);
+    HMENU m_current_menu;
 
     DWORD m_next_id;
 
@@ -125,7 +128,6 @@ private:
     static INT_PTR CALLBACK BaseCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
     static std::map<HWND, DlgBase*> ms_hwnd_dlgbase_map;
 
-    friend class Menu;
     friend class MenuItemBase;
 
     template<std::size_t>

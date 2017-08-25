@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2017- Hourglass Resurrection Team
+ * Hourglass Resurrection is licensed under GPL v2.
+ * Refer to the file COPYING.txt in the project root.
+ */
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -25,8 +30,8 @@ namespace
 #pragma pack(pop)
 }
 
-MenuItemBase::MenuItemBase(const std::wstring& title, const std::wstring& shortcut, bool submenu, MenuItemBase* parent, DlgBase* dlg) :
-    m_menu(sizeof(MENUEX_TEMPLATE_ITEM) + (submenu ? sizeof(DWORD) : 0))
+MenuItemBase::MenuItemBase(const std::wstring& title, const std::wstring& shortcut, bool submenu, MenuBase* parent, DlgBase* dlg) :
+    MenuBase(sizeof(MENUEX_TEMPLATE_ITEM) + (submenu ? sizeof(DWORD) : 0))
 {
     auto item = reinterpret_cast<MENUEX_TEMPLATE_ITEM*>(m_menu.data());
     item->dwType = title.empty() ? MFT_SEPARATOR : 0;

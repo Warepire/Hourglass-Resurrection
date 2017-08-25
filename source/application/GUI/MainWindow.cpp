@@ -16,9 +16,13 @@
 #include "application/GUI/Objects/CheckboxButton.h"
 #include "application/GUI/Objects/EditControl.h"
 #include "application/GUI/Objects/GroupBox.h"
+#include "application/GUI/Objects/MenuBar.h"
+#include "application/GUI/Objects/MenuItem.h"
+#include "application/GUI/Objects/MenuSeparator.h"
 #include "application/GUI/Objects/PushButton.h"
 #include "application/GUI/Objects/RadioButton.h"
 #include "application/GUI/Objects/StaticText.h"
+#include "application/GUI/Objects/SubMenu.h"
 
 #include "MainWindow.h"
 
@@ -279,6 +283,7 @@ void MainWindow::CreateMenu()
     }
     bool on = true;
 
+    SubMenu(L"&File", &m_menu, this);
     m_menu.BeginMenuCategory(L"&File", L"", IDC_STATIC, true);
 
     on = !exe_filename_only.empty() && !started;
@@ -660,7 +665,7 @@ void MainWindow::Spawn(int show_window)
 
 bool MainWindow::OnCreateEvent()
 {
-    return m_menu.AttachMenu(this);
+    return SetMenuBar(&m_menu);
 }
 
 bool MainWindow::OnCloseEvent()
