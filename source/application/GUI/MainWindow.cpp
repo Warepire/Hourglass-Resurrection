@@ -335,10 +335,32 @@ void MainWindow::CreateMenu()
     CheckableMenuItem(L"&Non-Local Video Memory (Varies)", L"", &surface_memory, this).SetChecked(localTASflags.forceSurfaceMemory == 2);
     CheckableMenuItem(L"Local &Video Memory        (Fast Draw, Slow Read)", L"", &surface_memory, this).SetChecked(localTASflags.forceSurfaceMemory == 3);
 
-    //m_menu.EndSubMenu();
+    SubMenu runtime(L"&Runtime", &m_menu, this);
 
-    //m_menu.EndMenuCategory();
+    SubMenu app_locale(L"App &Locale", &runtime, this);
 
+    int curAppLocale = localTASflags.appLocale ? localTASflags.appLocale : tempAppLocale;
+    CheckableMenuItem(L"Use system locale", L"", &app_locale, this).SetEnabled(!tempAppLocale || !started).SetChecked(curAppLocale == 0); // L"movie has forced non-system locale"
+    CheckableMenuItem(L"Force &Japanese locale", L"", &app_locale, this).SetEnabled(curAppLocale || !started).SetChecked(curAppLocale == 1041); // L"can't enable while running"
+    //        HelperFuncInsertMenuByID(Locale, i++, Flags | ((curAppLocale == 2052) ? MF_CHECKED : MF_UNCHECKED) | ((!curAppLocale&&started) ? MF_GRAYED : 0), ID_EXEC_LOCALE_CHINESE, L"", L"Force &Chinese (Simplified) locale", L"can't enable while running");
+    //        HelperFuncInsertMenuByID(Locale, i++, Flags | ((curAppLocale == 1042) ? MF_CHECKED : MF_UNCHECKED) | ((!curAppLocale&&started) ? MF_GRAYED : 0), ID_EXEC_LOCALE_KOREAN, L"", L"Force &Korean locale", L"can't enable while running");
+    //        HelperFuncInsertMenuByID(Locale, i++, Flags | ((curAppLocale == 1033) ? MF_CHECKED : MF_UNCHECKED) | ((!curAppLocale&&started) ? MF_GRAYED : 0), ID_EXEC_LOCALE_ENGLISH, L"", L"Force &English locale", L"can't enable while running");
+    //        InsertMenu(Exec, i++, MF_SEPARATOR, NULL, NULL);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, Affinity, L"", L"&Affinity", 0);
+    //        InsertMenu(Exec, i++, MF_SEPARATOR, NULL, NULL);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, ExecMultithreading, L"", L"&Multithreading Mode", 0);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, ExecTimers, L"", L"Multimedia &Timer Mode", 0);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, ExecMessageSync, L"", L"Message &Sync Mode", 0);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, ExecWaitSync, L"", L"&Wait Sync Mode", 0);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, ExecDlls, L"", L"&DLL Loading", 0);
+    //        HelperFuncInsertMenuByID(Exec, i++, Flags | ((truePause) ? MF_CHECKED : MF_UNCHECKED), ID_EXEC_USETRUEPAUSE, L"", L"Disable Pause Helper", 0);
+    //        HelperFuncInsertMenuByID(Exec, i++, Flags | ((onlyHookChildProcesses) ? MF_CHECKED : MF_UNCHECKED) | (started ? MF_GRAYED : 0), ID_EXEC_ONLYHOOKCHILDPROC, L"", L"Wait until sub-process creation" /*" (might help IWBTG)"*/, L"can't change while running");
+    //        InsertMenu(Exec, i++, MF_SEPARATOR, NULL, NULL);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, Performance, L"", L"&Performance", 0);
+    //        HelperFuncInsertMenu(Exec, i++, Flags | MF_POPUP, DebugLogging, L"", L"&Debug Logging", 0);
+
+
+    //SubMenu sound(L"&Sound", &m_menu, this);
 
 //        HelperFuncInsertMenu(MainMenu, i++, Flags, Sound, L"", L"&Sound", 0);
 //        HelperFuncInsertMenu(MainMenu, i++, Flags, Exec, L"", L"&Runtime", 0);
